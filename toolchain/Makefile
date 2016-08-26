@@ -30,15 +30,18 @@ gcc-%/: gcc-%.tar.gz
 %-patch: patches/%.patch %/
 	patch -p0 -N  -r- < $<
 
+%-config.done: %-configure
+	touch $@
+
 binutils-configure: binutils-$(BINUTILS_VERSION)-patch
 	cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 automake-1.11
 	mkdir -p build-binutils
 	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --disable-nls --disable-werror
 
-binutils-make: build-binutils/
+binutils-make: binutils-config.done
 	cd build-binutils && make
 
-binutils-install: build-binutils/
+binutils-install: binutils-make
 	cd build-binutils && make install
 
 binutils-deb: binutils-make
@@ -55,7 +58,7 @@ gcc-configure: gcc-$(GCC_VERSION)-patch $(SYSROOT)/usr/include/
 	mkdir -p build-gcc
 	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror
 
-gcc-make: build-gcc/ $(SYSROOT)/usr/include/
+gcc-make: gcc-config.done $(SYSROOT)/usr/include/
 	cd build-gcc && make all-gcc
 	cd build-gcc && make all-target-libgcc
 
