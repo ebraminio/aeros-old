@@ -23,18 +23,14 @@ hdd: hdd.img sysroot/
 hdd.img:
 	dd if=/dev/zero of=hdd.img bs=1M count=34
 	@echo 'n\n\n\n\n\nt\nc\na\nw\n' | fdisk hdd.img --color=auto
-	kpartx -av hdd.img
-	sleep 2
-	mkfs.fat -F32 /dev/mapper/loop0p1 -n AerOS
-	kpartx -dv hdd.img
-	@if [ -n "$$SUDO_USER" ]; then chown "$$SUDO_USER" hdd.img; fi
-
-grub: hdd.img
 	losetup /dev/loop0 hdd.img
 	kpartx -av /dev/loop0
+	sleep 2
+	mkfs.fat -F32 /dev/mapper/loop0p1 -n AerOS
 	mkdir -p /media/loop
 	mount /dev/mapper/loop0p1 /media/loop
 	grub-install /dev/loop0 --root-directory=/media/loop --target=i386-pc
 	umount /media/loop
 	kpartx -dv /dev/loop0
 	losetup -d /dev/loop0
+	@if [ -n "$$SUDO_USER" ]; then chown "$$SUDO_USER" hdd.img; fi
