@@ -1,0 +1,18 @@
+#config files
+.vimrc
+.gdbinit
+
+#log files
+bochslog.txt
+doxylog
+netdump.pcap
+
+#intermediate files
+*.o
+*.gch
+
+#final files
+*.a
+*.so
+*.kernel
+*.img

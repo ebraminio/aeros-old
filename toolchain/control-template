@@ -1,0 +1,7 @@
+Package: $TARGET$-$SOFT$
+Version: $SOFT_VERSION$-$PACKAGE_VERSION$
+Section: devel
+Priority: optional
+Architecture: $ARCH$
+Maintainer: Aerath Aiskurimu <aerath@users.noreply.github.com>
+Description: $SOFT$ for $TARGET$ toolchain
