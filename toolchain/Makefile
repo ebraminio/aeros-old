@@ -15,6 +15,8 @@ LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-desc
 .SECONDARY: binutils-$(BINUTILS_VERSION)/ gcc-$(GCC_VERSION)/
 .SUFFIXES:
 
+all: gcc-install
+
 binutils-%.tar.gz:
 	wget -c ftp://ftp.gnu.org/gnu/binutils/$@
 
@@ -53,7 +55,7 @@ binutils-deb: binutils-make
 	fakeroot dpkg-deb -b dist/$(BINUTILS_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(BINUTILS_PACKAGE).deb
 
-gcc-configure: gcc-$(GCC_VERSION)-patch $(SYSROOT)/usr/include/
+gcc-configure: gcc-$(GCC_VERSION)-patch $(SYSROOT)/usr/include/ binutils-install
 	cd gcc-$(GCC_VERSION)/libstdc++-v3 && autoconf2.64
 	mkdir -p build-gcc
 	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror

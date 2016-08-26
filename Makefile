@@ -8,10 +8,6 @@ QEMUFLAGS = -vga std -monitor stdio -net dump,file=netdump.pcap -net nic,model=e
 .PHONY: qemu
 .DELETE_ON_ERROR: hdd.img
 
-toolchain:
-	cd toolchain && make binutils-configure && make binutils-install
-	cd toolchain && make gcc-configure && make gcc-install
-
 qemu: hdd.img $(SYSROOT)/boot/aeros-i686.kernel
 	qemu-system-i386 $(QEMUFLAGS) -hda hdd.img -kernel kernel/aeros-i686.kernel
 
