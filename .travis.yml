@@ -1,5 +1,17 @@
 language: c
 
+addons:
+  apt:
+    packages:
+    - autoconf2.64
+    - automake1.11
+    - libgmp3-dev
+    - libmpfr-dev
+    - libisl-dev
+    - libcloog-isl-dev
+    - libmpc-dev
+    - texinfo
+
 script:
   - make -C toolchain -n
   - make -C toolchain
