@@ -16,6 +16,10 @@ hdd: hdd.img sysroot/
 	mkdir -p /media/loop
 	sleep 2
 	mount /dev/mapper/loop0p1 /media/loop
+	@# Touch these files to make sure next 'rm' get at one thing to do
+	@touch /media/loop/a /media/loop/boot/a
+	rm -r $$(find /media/loop/ -mindepth 1 -maxdepth 1 ! -name boot)
+	rm -r $$(find /media/loop/boot/ -mindepth 1 -maxdepth 1 ! -name grub)
 	cp -r $(SYSROOT)/* /media/loop/
 	umount /media/loop
 	kpartx -dv hdd.img

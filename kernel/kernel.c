@@ -30,12 +30,15 @@ extern void _enter_usermode(void);
 __attribute__ ((noreturn))
 void kernel_main(unsigned long magic, unsigned long address)
 {
-	video_init();
+	video_init();		// Initialize builtin VGA text mode driver
 
 	if(magic != MULTIBOOT_BOOTLOADER_MAGIC)
 		panic("Not loaded by Multiboot-compliant bootloader\n");
 
 	multiboot_info_t* mboot_info = (multiboot_info_t*) address;
+
+	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO && ((vbe_mode_t*)mboot_info->vbe_mode_info)->mode_attributes & VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE)
+		vbe_init((vbe_controller_t*)mboot_info->vbe_control_info, (vbe_mode_t*)mboot_info->vbe_mode_info);
 
 	char id[13];
 	char brand[48];
@@ -110,8 +113,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 
 	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO)
 	{
-		vbe_controller_info_t* vbe_cinfo = (vbe_controller_info_t*)mboot_info->vbe_control_info;
-		vbe_mode_info_t* vbe_minfo = (vbe_mode_info_t*)mboot_info->vbe_mode_info;
+		vbe_controller_t* vbe_cinfo = (vbe_controller_t*)mboot_info->vbe_control_info;
+		vbe_mode_t* vbe_minfo = (vbe_mode_t*)mboot_info->vbe_mode_info;
 
 		if(vbe_minfo->mode_attributes & VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE)
 			printf("\t\tLinear frame buffer mode available : 0x%p", (void*)vbe_minfo->frame_buffer);

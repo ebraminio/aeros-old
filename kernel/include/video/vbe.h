@@ -2,6 +2,7 @@
 #define __VIDEO_VBE_H__
 
 #include <stdint.h>
+#include "video/device.h"
 
 // Fixed DAC width = 6bits. Switchable to 8bits. Resetted upon mode set.
 #define VBE_CAPA_DAC_WITDH_SWICHABLE	(1<<0)
@@ -26,7 +27,7 @@
 
 const char* vbe_memory_models[VBE_MAX_MEM_MODEL];
 
-typedef struct
+typedef struct vbe_controlle
 {
 	uint32_t signature;					/**< 'VESA' 0x41534556 or VBE2 0x32454256 */
 	uint8_t minor_version;
@@ -42,9 +43,9 @@ typedef struct
 	char** oem_product_revision;		/**< Only if VBE2 is preset in sig */
 	uint8_t reserved[222];
 	uint8_t data_area[256];				/**< For OEM strings. Only if VBE2 is preset in sig */
-} vbe_controller_info_t;
+} vbe_controller_t;
 
-typedef struct
+typedef struct vbe_mode
 {
 	uint16_t mode_attributes;		/**< Bit 1 is reserved. Bits 8-15 are reserved */
 	uint8_t winA_attributes;
@@ -73,6 +74,6 @@ typedef struct
 	uint32_t offscreen_memory;
 	uint32_t offscreen_mem_size;	/**< In 1k units */
 	uint8_t reserved[206];
-} vbe_mode_info_t;
+} vbe_mode_t;
 
 #endif
