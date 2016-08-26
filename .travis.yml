@@ -15,9 +15,5 @@ addons:
     - texinfo
 
 script:
-  - wget http://ftp.gnu.org/gnu/autoconf/autoconf-2.64.tar.gz
-  - tar xzf autoconf-2.64.tar.gz
-  - cd autoconf-2.64 && ./configure && make && sudo make install
-  - pwd; ls
   - make -C toolchain -n
   - make -C toolchain
