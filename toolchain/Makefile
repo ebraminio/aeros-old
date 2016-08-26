@@ -1,6 +1,6 @@
 -include ../config.mk
 
-SYSROOT = $(shell realpath ../sysroot)
+SYSROOT = $(shell pwd)/../sysroot
 
 BINUTILS_VERSION = 2.27
 GCC_VERSION = 6.1.0
@@ -13,6 +13,7 @@ PACKAGE_VERSION= 0.1-$(shell date +'%Y%m%d')
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
 .SECONDARY: binutils-$(BINUTILS_VERSION)/ gcc-$(GCC_VERSION)/
+.PHONY: binutils-$(BINUTILS_VERSION)-patch gcc-$(GCC_VERSION)-patch
 
 binutils-%.tar.gz:
 	wget -c ftp://ftp.gnu.org/gnu/binutils/$@
@@ -42,7 +43,7 @@ binutils-install: build-binutils/
 
 binutils-deb: binutils-make
 	mkdir -p dist/$(BINUTILS_PACKAGE)/debian
-	cd build-binutils && make install-strip DESTDIR="$(shell realpath dist/$(BINUTILS_PACKAGE))"
+	cd build-binutils && make install-strip DESTDIR="$(shell pwd)/dist/$(BINUTILS_PACKAGE)"
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/binutils/g' | sed 's/\$$SOFT_VERSION\$$/$(BINUTILS_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(BINUTILS_PACKAGE)/debian/control
 	find dist/$(BINUTILS_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
 	rm -r dist/$(BINUTILS_PACKAGE)/usr/share/info
@@ -64,8 +65,8 @@ gcc-install: gcc-make
 
 gcc-deb: gcc-make
 	mkdir -p dist/$(GCC_PACKAGE)/debian
-	cd build-gcc && make install-strip-gcc DESTDIR="$(shell realpath dist/$(GCC_PACKAGE))"
-	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(shell realpath dist/$(GCC_PACKAGE))"
+	cd build-gcc && make install-strip-gcc DESTDIR="$(shell pwd)/ dist/$(GCC_PACKAGE)"
+	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/gcc/g' | sed 's/\$$SOFT_VERSION\$$/$(GCC_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(GCC_PACKAGE)/DEBIAN/control
 	echo Depends: $(TARGET)-binutils >> dist/$(GCC_PACKAGE)/debian/control
 	rm -r dist/$(GCC_PACKAGE)/usr/share/man/man7
