@@ -13,7 +13,6 @@ PACKAGE_VERSION= 0.1-$(shell date +'%Y%m%d')
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
 .SECONDARY: binutils-$(BINUTILS_VERSION)/ gcc-$(GCC_VERSION)/
-.PHONY: binutils-$(BINUTILS_VERSION)-patch gcc-$(GCC_VERSION)-patch
 
 binutils-%.tar.gz:
 	wget -c ftp://ftp.gnu.org/gnu/binutils/$@
