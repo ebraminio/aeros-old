@@ -29,13 +29,11 @@ binutils-%/: binutils-%.tar.gz
 gcc-%/: gcc-%.tar.gz
 	tar xzf $<
 
-%-patch: patches/%.patch %/
-	patch -p0 -N  -r- < $<
-
 %-config.done: %-configure
 	touch $@
 
-binutils-configure: binutils-$(BINUTILS_VERSION)-patch
+binutils-configure: binutils-$(BINUTILS_VERSION)/
+	patch -p0 -N  -r- < patches/binutils-$(BINUTILS).patch
 	cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 automake-1.11
 	mkdir -p build-binutils
 	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --disable-nls --disable-werror
@@ -55,7 +53,8 @@ binutils-deb: binutils-make
 	fakeroot dpkg-deb -b dist/$(BINUTILS_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(BINUTILS_PACKAGE).deb
 
-gcc-configure: gcc-$(GCC_VERSION)-patch $(SYSROOT)/usr/include/ binutils-install
+gcc-configure: gcc-$(GCC_VERSION)/ $(SYSROOT)/usr/include/ binutils-install
+	patch -p0 -N  -r- < patches/gcc-$(GCC_VERSION).patch
 	cd gcc-$(GCC_VERSION)/libstdc++-v3 && autoconf2.64
 	mkdir -p build-gcc
 	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror
