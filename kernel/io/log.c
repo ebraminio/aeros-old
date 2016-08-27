@@ -17,6 +17,7 @@ void print_size(uint32_t size)
 	printf("%d%s", c_size, sizes[i]);
 }
 
+ __attribute__ ((noreturn))
 void panic(const char* format, ...)
 {
 	va_list argp;
