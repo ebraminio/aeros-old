@@ -1,6 +1,6 @@
 include config.mk
 
-.PHONY: kernel hdd qemu toolchain
+.PHONY: kernel hdd qemu
 
 SYSROOT = $(shell pwd)/sysroot
 QEMUFLAGS = -vga std -monitor stdio -net dump,file=netdump.pcap -net nic,model=e1000 -net user,hostfwd=tcp::5555-:5555 -s -S
