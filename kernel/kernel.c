@@ -10,6 +10,7 @@
 #include "video/vbe.h"
 #include "io/log.h"
 #include <cpuid.h>
+#include "cpu/acpi.h"
 
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
@@ -39,6 +40,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 
 	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO && ((vbe_mode_t*)mboot_info->vbe_mode_info)->mode_attributes & VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE)
 		vbe_init((vbe_controller_t*)mboot_info->vbe_control_info, (vbe_mode_t*)mboot_info->vbe_mode_info);
+
+	acpi_init();
 
 	char id[13];
 	char brand[48];
