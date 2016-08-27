@@ -1,4 +1,5 @@
 #include "io/log.h"
+#include <stdio.h>
 #include <stdarg.h>
 
 static const char* sizes[] = {"B", "KB", "MB", "GB"};
