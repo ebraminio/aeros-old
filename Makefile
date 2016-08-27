@@ -5,7 +5,6 @@ include config.mk
 SYSROOT = $(shell pwd)/sysroot
 QEMUFLAGS = -vga std -monitor stdio -net dump,file=netdump.pcap -net nic,model=e1000 -net user,hostfwd=tcp::5555-:5555 -s -S
 
-.PHONY: qemu
 .DELETE_ON_ERROR: hdd.img
 
 qemu: hdd.img $(SYSROOT)/boot/aeros-i686.kernel

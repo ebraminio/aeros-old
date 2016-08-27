@@ -1,4 +1,4 @@
-.PHONY: clean install uninstall
+.PHONY: all clean install uninstall
 
 TARGET = i386-aeros
 CC = $(TARGET)-gcc
@@ -17,5 +17,3 @@ DEBUGFLAGS = -DDEBUG -g
 
 CFLAGS = $(FLAGS) -std=gnu99 $(DEBUGFLAGS)
 ASFLAGS = -c -Iinclude $(DEBUGFLAGS)
-
-%.kernel:
