@@ -9,11 +9,14 @@ OBJECTS = $(C_FILES:.c=.o) $(S_FILES:.S=.o)
 CFLAGS += -I$(shell pwd)/include -ffreestanding -fbuiltin
 LDFLAGS += -nostdlib -L$(KERNEL_DIR)/ -lgcc
 
+all: aeros-i686.kernel
+
+depends:
+	makedepend -- -Y$(SYSROOT)/usr/include -I$(shell $(CC) --print-search-dir|grep install|cut -d':' -f2)include $(CFLAGS) -- $(C_FILES)
+
 kernel.o: CFLAGS += -DMULTIBOOT1
 
 boot.o: ASFLAGS += -DMULTIBOOT1
-
-all: aeros-i686.kernel
 
 aeros-i686.kernel: $(OBJECTS) linker.ld
 	$(CC) -o $@ $(OBJECTS) $(LDFLAGS) -Wl,-d -T linker.ld -ffreestanding -fbuiltin
