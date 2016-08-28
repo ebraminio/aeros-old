@@ -10,6 +10,7 @@
 #include "video/vbe.h"
 #include "io/log.h"
 #include <cpuid.h>
+#include "cpu/gdt.h"
 
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
@@ -139,6 +140,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 		printf("\t\tVBE 2.0+ interface : Segment:0x%x\tOffset:0x%08x\tLength:0x%x\n",
 			mboot_info->vbe_interface_seg, mboot_info->vbe_interface_off, mboot_info->vbe_interface_len);
 	}
+
+	gdt_init();
 
 	for(;;);
 }
