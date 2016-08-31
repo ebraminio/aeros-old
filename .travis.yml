@@ -15,5 +15,4 @@ addons:
     - texinfo
 
 script:
-  - make -C toolchain -n
-  - make -C toolchain
+  - NO_AUTOMAKE=1 make -C toolchain

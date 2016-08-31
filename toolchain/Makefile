@@ -33,7 +33,7 @@ gcc-%/: gcc-%.tar.gz
 	touch $@
 
 binutils-configure: binutils-$(BINUTILS_VERSION)/
-	patch -p0 -N  -r- < patches/binutils-$(BINUTILS_VERSION).patch
+	if [ $$NO_AUTOMAKE -eq 1 ]; then patch -p0 -N  -r- < patches/binutils-$(BINUTILS_VERSION)-automake.patch; else patch -p0 -N  -r- < patches/binutils-$(BINUTILS_VERSION).patch; fi
 	cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 automake-1.11
 	mkdir -p build-binutils
 	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --disable-nls --disable-werror
