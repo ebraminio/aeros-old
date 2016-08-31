@@ -11,6 +11,8 @@
 #include "io/log.h"
 #include <cpuid.h>
 #include "cpu/gdt.h"
+#include "cpu/idt.h"
+#include "devices/pit.h"
 
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
@@ -142,6 +144,10 @@ void kernel_main(unsigned long magic, unsigned long address)
 	}
 
 	gdt_init();
+	nopanic("GDT");
+	pit_init();
+	idt_init();
+	printf(" IDT");
 
 	for(;;);
 }
