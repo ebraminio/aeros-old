@@ -73,9 +73,9 @@ typedef struct sigaction
 	int sa_flags;		/**< Special flags */
 };
 
-#define	SIG_BLOCK     0		 /* Block signals.  */
-#define	SIG_UNBLOCK   1		 /* Unblock signals.  */
-#define	SIG_SETMASK   2		 /* Set the set of blocked signals.  */
+#define	SIG_BLOCK	0		 /* Block signals.  */
+#define	SIG_UNBLOCK	1		 /* Unblock signals.  */
+#define	SIG_SETMASK	2		 /* Set the set of blocked signals.  */
 
 #define SIG_DFL (void (*)(int))1
 #define SIG_ERR (void (*)(int))2

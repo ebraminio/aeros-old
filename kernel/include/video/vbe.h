@@ -33,7 +33,7 @@ typedef struct vbe_controlle
 	uint8_t minor_version;
 	uint8_t major_version;
 	char** oem_string;					/**< Only if VBE2 is preset in sig */
-	uint32_t capabilities;				/**< See VBE_CAPA_*. Bit 2 is  about RAMDAC operations. Bits 3-31 are reserved */
+	uint32_t capabilities;				/**< See VBE_CAPA_*. Bit 2 is about RAMDAC operations. Bits 3-31 are reserved */
 	uint16_t* supported_vmodes;			/**< End with -1 0xFFFF. Only if VBE2 is preset in sig */
 	uint16_t total_memory;				/**< Counted in number of 64kb memory blocks */
 	uint8_t oem_software_minor_version;	/**< Only if VBE2 is preset in sig */

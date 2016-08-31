@@ -1,11 +1,13 @@
 #config files
 .vimrc
 .gdbinit
+bochsrc.bxrc
 
 #log files
 bochslog.txt
 doxylog
 netdump.pcap
+serial.txt
 
 #intermediate files
 *.o

@@ -5,12 +5,12 @@
 
 typedef struct passwd
 {
-    char* pw_name;
-    uid_t pw_uid;
-    gid_t pw_gid;
-    char* pw_dir;
-    char* pw_shell;
-}; 
+	char* pw_name;
+	uid_t pw_uid;
+	gid_t pw_gid;
+	char* pw_dir;
+	char* pw_shell;
+};
 
 struct passwd* getpwnam(const char*);
 int getpwnam_r(const char*, struct passwd*, char*, size_t, struct passwd**);
