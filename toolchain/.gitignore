@@ -1,9 +1,11 @@
 *.tar.gz
+*.tar.bz2
 
 binutils-*/
 build-binutils/
 gcc-*/
 build-gcc/
+isl-*/
 
 i386-aeros-binutils-*
 i386-aeros-gcc-*
