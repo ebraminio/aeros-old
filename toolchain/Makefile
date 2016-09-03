@@ -108,9 +108,12 @@ gcc-deb: gcc-make
 	cd build-gcc && make install-strip-gcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
 	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/gcc/g' | sed 's/\$$SOFT_VERSION\$$/$(GCC_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(GCC_PACKAGE)/DEBIAN/control
-	echo Depends: $(TARGET)-binutils >> dist/$(GCC_PACKAGE)/DEBIAN/control
+	echo Depends: libc6, $(TARGET)-binutils >> dist/$(GCC_PACKAGE)/DEBIAN/control
+	rm -r dist/$(GCC_PACKAGE)/usr/share/info
 	rm -r dist/$(GCC_PACKAGE)/usr/share/man/man7
 	find dist/$(GCC_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
+	chmod 0755 $$(find dist/$(GCC_PACKAGE)/usr -type d)
+	chmod 0644 $$(find dist/$(GCC_PACKAGE)/usr -type f -name '*.so') $$(find usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include -type f -name '*.h') $$(find usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include-fixed -type f -name '*.h')
 	fakeroot dpkg-deb -b dist/$(GCC_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(GCC_PACKAGE).deb
 
