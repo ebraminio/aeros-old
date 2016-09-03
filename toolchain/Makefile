@@ -2,6 +2,8 @@
 
 SYSROOT = $(shell pwd)/../sysroot
 
+BINUTILS := $(shell command -v $(TARGET)-as 2> /dev/null)
+
 BINUTILS_VERSION = 2.27
 GCC_VERSION = 6.1.0
 ISL_VERSION = 0.16.1
@@ -13,7 +15,7 @@ PACKAGE_VERSION= 0.1-$(shell date +'%Y%m%d')
 
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
-.SECONDARY: binutils-$(BINUTILS_VERSION)/ binutils-$(BINUTILS_VERSION).tar.gz isl-$(ISL_VERSION)/ isl-$(ISL_VERSION).tar.bz2  gcc-$(GCC_VERSION)/ gcc-$(GCC_VERSION).tar.gz
+.SECONDARY: binutils-$(BINUTILS_VERSION)/ binutils-$(BINUTILS_VERSION).tar.gz isl-$(ISL_VERSION)/ isl-$(ISL_VERSION).tar.bz2 gcc-$(GCC_VERSION)/ gcc-$(GCC_VERSION).tar.gz
 .SUFFIXES:
 
 all: gcc-install
@@ -22,7 +24,7 @@ binutils-%.tar.gz:
 	wget -c ftp://ftp.gnu.org/gnu/binutils/$@
 
 gcc-%.tar.gz:
-	wget -c ftp://ftp.gnu.org/gnu/gcc/$@
+	wget -c ftp://ftp.gnu.org/gnu/gcc/gcc-$(GCC_VERSION)/$@
 
 isl-%.tar.bz2:
 	wget -c ftp://gcc.gnu.org/pub/gcc/infrastructure/$@
@@ -39,24 +41,28 @@ isl-%/: isl-%.tar.bz2
 binutils-$(BINUTILS_VERSION)/isl: isl-$(ISL_VERSION) binutils-$(BINUTILS_VERSION)/
 	ln -s ../$< $@
 
-%-config.done: %-configure
-	touch $@
+gcc-$(GCC_VERSION)/isl: isl-$(ISL_VERSION) gcc-$(GCC_VERSION)/
+	ln -s ../$< $@
 
-binutils-configure: binutils-$(BINUTILS_VERSION)/ binutils-$(BINUTILS_VERSION)/isl
+binutils-configure: binutils-$(BINUTILS_VERSION)/ binutils-$(BINUTILS_VERSION)/isl patches/binutils-$(BINUTILS_VERSION).patch
 ifeq ($(NO_AUTOMAKE),1)
-		patch -p0 -N  -r- < patches/binutils-$(BINUTILS_VERSION)-automake.patch
+		patch -p0 -N -r- < patches/binutils-$(BINUTILS_VERSION)-automake.patch
 else
-		patch -p0 -N  -r- < patches/binutils-$(BINUTILS_VERSION).patch
+		patch -p0 -N -r- < patches/binutils-$(BINUTILS_VERSION).patch
 		cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 automake-1.11
 endif
 	mkdir -p build-binutils
 	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --disable-nls --disable-werror --with-isl
 
-binutils-make: binutils-config.done
+build-binutils/Makefile: binutils-configure
+
+binutils-make: build-binutils/Makefile
 	cd build-binutils && make
 
 binutils-install: binutils-make
 	cd build-binutils && make install
+
+dist/$(BINUTILS_PACKAGE).deb: binutils-deb
 
 binutils-deb: binutils-make
 	mkdir -p dist/$(BINUTILS_PACKAGE)/DEBIAN
@@ -67,13 +73,25 @@ binutils-deb: binutils-make
 	fakeroot dpkg-deb -b dist/$(BINUTILS_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(BINUTILS_PACKAGE).deb
 
-gcc-configure: gcc-$(GCC_VERSION)/ $(SYSROOT)/usr/include/ binutils-install
-	patch -p0 -N  -r- < patches/gcc-$(GCC_VERSION).patch
-	cd gcc-$(GCC_VERSION)/libstdc++-v3 && autoconf2.64
-	mkdir -p build-gcc
-	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror
+binutils-install-deb: dist/$(BINUTILS_PACKAGE).deb
+	dpkg -i $<
 
-gcc-make: gcc-config.done $(SYSROOT)/usr/include/
+gcc-configure: gcc-$(GCC_VERSION)/ $(SYSROOT)/usr/include/ patches/gcc-$(GCC_VERSION).patch
+ifndef BINUTILS
+	$(MAKE) -C . binutils-install
+endif
+ifeq ($(NO_AUTOMAKE),1)
+	patch -p0 -N -r- < patches/gcc-$(GCC_VERSION)-automake.patch
+else
+	patch -p0 -N -r- < patches/gcc-$(GCC_VERSION).patch
+	cd gcc-$(GCC_VERSION)/libstdc++-v3 && autoconf2.64
+endif
+	mkdir -p build-gcc
+	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
+
+build-gcc/Makefile: gcc-configure
+
+gcc-make: build-gcc/Makefile $(SYSROOT)/usr/include/
 	cd build-gcc && make all-gcc
 	cd build-gcc && make all-target-libgcc
 
@@ -81,9 +99,11 @@ gcc-install: gcc-make
 	cd build-gcc && make install-gcc
 	cd build-gcc && make install-target-libgcc
 
+dist/$(GCC_PACKAGE).deb: gcc-deb
+
 gcc-deb: gcc-make
-	mkdir -p dist/$(GCC_PACKAGE)/debian
-	cd build-gcc && make install-strip-gcc DESTDIR="$(shell pwd)/ dist/$(GCC_PACKAGE)"
+	mkdir -p dist/$(GCC_PACKAGE)/DEBIAN
+	cd build-gcc && make install-strip-gcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
 	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/gcc/g' | sed 's/\$$SOFT_VERSION\$$/$(GCC_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(GCC_PACKAGE)/DEBIAN/control
 	echo Depends: $(TARGET)-binutils >> dist/$(GCC_PACKAGE)/debian/control
@@ -91,3 +111,6 @@ gcc-deb: gcc-make
 	find dist/$(GCC_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
 	fakeroot dpkg-deb -b dist/$(GCC_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(GCC_PACKAGE).deb
+
+gcc-install-deb: dist/$(GCC_PACKAGE).deb
+	dpkg -i $<

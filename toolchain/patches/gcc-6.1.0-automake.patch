@@ -1,0 +1,113 @@
+diff --no-dereference -Naur -x autom4te.cache -x configure -x testsuite -x libgo -x libjava gcc-6.1.0-original/config.sub gcc-6.1.0/config.sub
+--- gcc-6.1.0-original/config.sub	2015-12-31 22:13:28.000000000 +0100
++++ gcc-6.1.0/config.sub	2016-09-03 15:10:52.824720399 +0200
+@@ -1399,7 +1399,7 @@
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+ 	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -es* \
+-	      | -onefs* | -tirtos*)
++	      | -onefs* | -tirtos* | -aeros*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)
+diff --no-dereference -Naur -x autom4te.cache -x configure -x testsuite -x libgo -x libjava gcc-6.1.0-original/fixincludes/mkfixinc.sh gcc-6.1.0/fixincludes/mkfixinc.sh
+--- gcc-6.1.0-original/fixincludes/mkfixinc.sh	2015-04-22 16:18:16.000000000 +0200
++++ gcc-6.1.0/fixincludes/mkfixinc.sh	2016-09-03 15:10:52.948725699 +0200
+@@ -11,6 +11,7 @@
+ 
+ # Check for special fix rules for particular targets
+ case $machine in
++    *-aeros* | \
+     i?86-*-cygwin* | \
+     i?86-*-mingw32* | \
+     x86_64-*-mingw32* | \
+diff --no-dereference -Naur -x autom4te.cache -x configure -x testsuite -x libgo -x libjava gcc-6.1.0-original/gcc/config/aeros.h gcc-6.1.0/gcc/config/aeros.h
+--- gcc-6.1.0-original/gcc/config/aeros.h	1970-01-01 01:00:00.000000000 +0100
++++ gcc-6.1.0/gcc/config/aeros.h	2016-09-03 15:10:52.948725699 +0200
+@@ -0,0 +1,31 @@
++/* Useful if you wish to make target-specific gcc changes. */
++#undef TARGET_AEROS
++#define TARGET_AEROS 1
++ 
++/* Default arguments you want when running your
++   i686-myos-gcc/x86_64-myos-gcc toolchain */
++#define LIB_SPEC "-lc" /* link against C standard library */
++
++/* Files that are linked before user code.
++   The %s tells gcc to look for these files in the library directory. */
++#undef STARTFILE_SPEC
++#define STARTFILE_SPEC "crt0.o%s crti.o%s crtbegin.o%s"
++ 
++/* Files that are linked after user code. */
++#undef ENDFILE_SPEC
++#define ENDFILE_SPEC "crtend.o%s crtn.o%s"
++
++/* Don't automatically add extern "C" { } around header files. */
++#undef  NO_IMPLICIT_EXTERN_C
++#define NO_IMPLICIT_EXTERN_C 1
++ 
++/* Additional predefined macros. */
++#undef TARGET_OS_CPP_BUILTINS
++#define TARGET_OS_CPP_BUILTINS()      \
++  do {                                \
++    builtin_define ("__aeros__");      \
++    builtin_define ("__unix__");      \
++    builtin_assert ("system=aeros");   \
++    builtin_assert ("system=unix");   \
++    builtin_assert ("system=posix");   \
++  } while(0);
+diff --no-dereference -Naur -x autom4te.cache -x configure -x testsuite -x libgo -x libjava gcc-6.1.0-original/gcc/config.gcc gcc-6.1.0/gcc/config.gcc
+--- gcc-6.1.0-original/gcc/config.gcc	2016-04-11 12:14:59.000000000 +0200
++++ gcc-6.1.0/gcc/config.gcc	2016-09-03 15:10:52.960726211 +0200
+@@ -612,6 +612,11 @@
+ 
+ # Common parts for widely ported systems.
+ case ${target} in
++*-*-aeros*)
++  gas=yes
++  gnu_ld=yes
++  default_use_cxa_atexit=yes
++  ;;
+ *-*-darwin*)
+   tmake_file="t-darwin ${cpu_type}/t-darwin"
+   tm_file="${tm_file} darwin.h"
+@@ -907,6 +912,9 @@
+ esac
+ 
+ case ${target} in
++i[34567]86-*-aeros*)
++	tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h glibc-stdint.h i386/i386elf.h aeros.h"
++	;;
+ aarch64*-*-elf | aarch64*-*-rtems*)
+ 	tm_file="${tm_file} dbxelf.h elfos.h newlib-stdint.h"
+ 	tm_file="${tm_file} aarch64/aarch64-elf.h aarch64/aarch64-elf-raw.h"
+diff --no-dereference -Naur -x autom4te.cache -x configure -x testsuite -x libgo -x libjava gcc-6.1.0-original/libgcc/config.host gcc-6.1.0/libgcc/config.host
+--- gcc-6.1.0-original/libgcc/config.host	2016-02-26 21:02:28.000000000 +0100
++++ gcc-6.1.0/libgcc/config.host	2016-09-03 15:10:52.960726211 +0200
+@@ -327,6 +327,10 @@
+ esac
+ 
+ case ${host} in
++i[34567]86-*-aeros*)
++	extra_parts="$extra_parts crtbegin.o crtend.o"
++	tmake_file="$tmake_file i386/t-crtstuff t-crtstuff-pic t-libgcc-pic"
++	;;
+ aarch64*-*-elf | aarch64*-*-rtems*)
+ 	extra_parts="$extra_parts crtbegin.o crtend.o crti.o crtn.o"
+ 	extra_parts="$extra_parts crtfastmath.o"
+diff --no-dereference -Naur -x autom4te.cache -x configure -x testsuite -x libgo -x libjava gcc-6.1.0-original/libstdc++-v3/crossconfig.m4 gcc-6.1.0/libstdc++-v3/crossconfig.m4
+--- gcc-6.1.0-original/libstdc++-v3/crossconfig.m4	2015-10-12 00:34:28.000000000 +0200
++++ gcc-6.1.0/libstdc++-v3/crossconfig.m4	2016-09-03 15:10:52.964726382 +0200
+@@ -5,6 +5,12 @@
+ AC_DEFUN([GLIBCXX_CROSSCONFIG],[
+ # Base decisions on target environment.
+ case "${host}" in
++  *-aeros*)
++    GLIBCXX_CHECK_COMPILER_FEATURES
++    GLIBCXX_CHECK_LINKER_FEATURES
++    GLIBCXX_CHECK_MATH_SUPPORT
++    GLIBCXX_CHECK_STDLIB_SUPPORT
++    ;;
+   arm*-*-symbianelf*)
+     # This is a freestanding configuration; there is nothing to do here.
+     ;;
