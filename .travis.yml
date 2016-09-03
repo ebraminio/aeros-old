@@ -1,10 +1,10 @@
 language: c
-
 sudo: required
-
 addons:
   apt:
     packages:
+    - build-essential
+    - wget
     - autoconf2.64
     - automake1.11
     - libgmp3-dev
@@ -13,8 +13,22 @@ addons:
     - libcloog-isl-dev
     - libmpc-dev
     - texinfo
-
+    - lintian
+    - fakeroot
 script:
-    - NO_AUTOMAKE=1 make -C toolchain binutils-deb
-    - sudo make -C toolchain binutils-install-deb
-    - NO_AUTOMAKE=1 make -C toolchain gcc-deb
+- NO_AUTOMAKE=1 make -C toolchain binutils-deb
+- sudo make -C toolchain binutils-install-deb
+- NO_AUTOMAKE=1 make -C toolchain gcc-deb
+cache:
+- apt
+- directories:
+  - toolchain/binutils-*
+  - toolchain/gcc-*
+deploy:
+  provider: releases
+  api_key:
+    secure: iWWzCnVxDklhVRB2ehJJzvS6tKRc5fQKq97DY9cv2CLEbmq+l/GLX6gKGnPF1zQuwDzWo69XilBaOa8GJb6n5+dz0IB8EJMBK/vvOu4mQWEmW7k+upfbnrRM9OZZfZAbYPx7YP6WuF29+b3fz+qQSlHLwa+R+NOJvMFW/BWcva6poJYEbAyI+BT61TNV2wxp7c+F3u3y3fVN4s0wxB6y3uanve3iSJUJ3itHN+Ov0KOC6hlc4J2oOM3gkPncFGzQHsUIoLAGH/Zwu5V1awy4fd/pye4XR9EWenZ/BxEAQf9WXAdajo+SI8ocNZ3KknjWi4dCdqpiBF3nXmjb63P3dgJWwCPYjU5WL2DETF6pGC7GyXn5lLJ3DhZz4RsYNhAi+8pj7CSysXKY2B2B2jB87oemTa6b2TjcR3cfHa4zzJqbR4v2o45KNJvH+A6lCWNHe/GAcOR2/x5cWRXXpOFvK/zlaVHuWOslnW8Si3SgSVUgxal0Pb3Eq1RBAjknFamlm9QXUcivWzqb2hp8TjlP+4VAcVVc2HPWyi5LYQz5XsnQvKqNn++hx18PGOlLoNgrLLc58UytHUg+bZpgd/ldyhKGoLEIgCQRAFbTEbu5jVgg77kJbMixiRaKac+/dlDpG2vv9YV8CjtAGEC9vE5Cfwaw6NIm2+12NXGY56VjJmk=
+  file: dist/*.deb
+  on:
+    repo: Aerath/aeros
+    branch: release
