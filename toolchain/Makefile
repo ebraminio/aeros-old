@@ -41,9 +41,6 @@ isl-%/: isl-%.tar.bz2
 binutils-$(BINUTILS_VERSION)/isl: isl-$(ISL_VERSION) binutils-$(BINUTILS_VERSION)/
 	ln -s ../$< $@
 
-gcc-$(GCC_VERSION)/isl: isl-$(ISL_VERSION) gcc-$(GCC_VERSION)/
-	ln -s ../$< $@
-
 binutils-configure: binutils-$(BINUTILS_VERSION)/ binutils-$(BINUTILS_VERSION)/isl patches/binutils-$(BINUTILS_VERSION).patch
 ifeq ($(NO_AUTOMAKE),1)
 		patch -p0 -N -r- < patches/binutils-$(BINUTILS_VERSION)-automake.patch
@@ -88,6 +85,7 @@ else
 	patch -p0 -N -r- < patches/gcc-$(GCC_VERSION).patch
 	cd gcc-$(GCC_VERSION)/libstdc++-v3 && autoconf2.64
 endif
+	cd gcc-$(GCC_VERSION) && ./contrib/download_prerequisites
 	mkdir -p build-gcc
 	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
 
