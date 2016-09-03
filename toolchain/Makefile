@@ -113,7 +113,7 @@ gcc-deb: gcc-make
 	rm -r dist/$(GCC_PACKAGE)/usr/share/man/man7
 	find dist/$(GCC_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
 	chmod 0755 $$(find dist/$(GCC_PACKAGE)/usr -type d)
-	chmod 0644 $$(find dist/$(GCC_PACKAGE)/usr -type f -name '*.so') $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include-fixed -type f -name '*.h')
+	chmod 0644 dist/$(GCC_PACKAGE)/usr/libexec/gcc/i386-aeros/6.1.0/liblto_plugin.so.0.0.0 $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include-fixed -type f -name '*.h')
 	fakeroot dpkg-deb -b dist/$(GCC_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(GCC_PACKAGE).deb
 
