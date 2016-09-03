@@ -15,10 +15,10 @@ PACKAGE_VERSION= 0.1-$(shell date +'%Y%m%d')
 
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
-.SECONDARY: binutils-$(BINUTILS_VERSION)/ binutils-$(BINUTILS_VERSION).tar.gz isl-$(ISL_VERSION)/ isl-$(ISL_VERSION).tar.bz2 gcc-$(GCC_VERSION)/ gcc-$(GCC_VERSION).tar.gz
+.SECONDARY: dist/$(TARGET)-binutils-$(BINUTILS_VERSION).deb binutils-$(BINUTILS_VERSION)/ binutils-$(BINUTILS_VERSION).tar.gz isl-$(ISL_VERSION)/ isl-$(ISL_VERSION).tar.bz2 gcc-$(GCC_VERSION)/ gcc-$(GCC_VERSION).tar.gz
 .SUFFIXES:
 
-all: gcc-install
+all:
 
 binutils-%.tar.gz:
 	wget -c ftp://ftp.gnu.org/gnu/binutils/$@
@@ -54,7 +54,8 @@ endif
 	mkdir -p build-binutils
 	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --disable-nls --disable-werror --with-isl
 
-build-binutils/Makefile: binutils-configure
+build-binutils/Makefile:
+	make binutils-configure
 
 binutils-make: build-binutils/Makefile
 	cd build-binutils && make
@@ -62,7 +63,8 @@ binutils-make: build-binutils/Makefile
 binutils-install: binutils-make
 	cd build-binutils && make install
 
-dist/$(BINUTILS_PACKAGE).deb: binutils-deb
+dist/$(BINUTILS_PACKAGE).deb:
+	make binutils-deb
 
 binutils-deb: binutils-make
 	mkdir -p dist/$(BINUTILS_PACKAGE)/DEBIAN
@@ -89,7 +91,8 @@ endif
 	mkdir -p build-gcc
 	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
 
-build-gcc/Makefile: gcc-configure
+build-gcc/Makefile:
+	make gcc-configure
 
 gcc-make: build-gcc/Makefile $(SYSROOT)/usr/include/
 	cd build-gcc && make all-gcc
@@ -99,7 +102,8 @@ gcc-install: gcc-make
 	cd build-gcc && make install-gcc
 	cd build-gcc && make install-target-libgcc
 
-dist/$(GCC_PACKAGE).deb: gcc-deb
+dist/$(GCC_PACKAGE).deb:
+	#make gcc-deb
 
 gcc-deb: gcc-make
 	mkdir -p dist/$(GCC_PACKAGE)/DEBIAN
