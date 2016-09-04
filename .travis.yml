@@ -19,6 +19,9 @@ script:
 - NO_AUTOMAKE=1 make -C toolchain binutils-deb
 - sudo make -C toolchain binutils-install-deb
 - NO_AUTOMAKE=1 make -C toolchain gcc-deb
+after_failure:
+- cat toolchain/build-binutils/config.log
+- cat toolchain/build-gcc/config.log
 cache:
 - apt
 - directories:
