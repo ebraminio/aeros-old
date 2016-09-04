@@ -50,7 +50,7 @@ dist/$(BINUTILS_PACKAGE).deb: build-binutils/Makefile
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/binutils/g' | sed 's/\$$SOFT_VERSION\$$/$(BINUTILS_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(BINUTILS_PACKAGE)/DEBIAN/control
 	find dist/$(BINUTILS_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
 	rm -r dist/$(BINUTILS_PACKAGE)/usr/share/info
-	chmod 0755 $(find dist/$(BINUTILS_PACKAGE)/usr -type d)
+	chmod 0755 $$(find dist/$(BINUTILS_PACKAGE)/usr -type d)
 	fakeroot dpkg-deb -b dist/$(BINUTILS_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(BINUTILS_PACKAGE).deb
 
