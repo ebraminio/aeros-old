@@ -39,7 +39,7 @@ else
 		cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 automake-1.11
 endif
 	mkdir -p build-binutils
-	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --disable-nls --disable-werror --with-isl
+	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --disable-nls --disable-werror
 
 binutils-deb: dist/$(BINUTILS_PACKAGE).deb
 
