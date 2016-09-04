@@ -15,7 +15,6 @@ PACKAGE_VERSION= 0.1-$(shell date +'%Y%m%d')
 
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
-.SECONDARY: dist/$(TARGET)-binutils-$(BINUTILS_VERSION).deb binutils-$(BINUTILS_VERSION)/ binutils-$(BINUTILS_VERSION).tar.gz isl-$(ISL_VERSION)/ isl-$(ISL_VERSION).tar.bz2 gcc-$(GCC_VERSION)/ gcc-$(GCC_VERSION).tar.gz
 .SUFFIXES:
 
 all:
@@ -26,22 +25,13 @@ binutils-%.tar.gz:
 gcc-%.tar.gz:
 	wget -c ftp://ftp.gnu.org/gnu/gcc/gcc-$(GCC_VERSION)/$@
 
-isl-%.tar.bz2:
-	wget -c ftp://gcc.gnu.org/pub/gcc/infrastructure/$@
-
-binutils-%/: binutils-%.tar.gz
+binutils-%/configure: binutils-%.tar.gz
 	tar xzf $<
 
-gcc-%/: gcc-%.tar.gz
+gcc-%/configure: gcc-%.tar.gz
 	tar xzf $<
 
-isl-%/: isl-%.tar.bz2
-	tar xjf $<
-
-binutils-$(BINUTILS_VERSION)/isl: isl-$(ISL_VERSION) binutils-$(BINUTILS_VERSION)/
-	ln -s ../$< $@
-
-binutils-configure: binutils-$(BINUTILS_VERSION)/ binutils-$(BINUTILS_VERSION)/isl patches/binutils-$(BINUTILS_VERSION).patch
+build-binutils/Makefile: binutils-$(BINUTILS_VERSION)/configure patches/binutils-$(BINUTILS_VERSION).patch
 ifeq ($(NO_AUTOMAKE),1)
 		patch -p0 -N -r- < patches/binutils-$(BINUTILS_VERSION)-automake.patch
 else
@@ -51,19 +41,10 @@ endif
 	mkdir -p build-binutils
 	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --disable-nls --disable-werror --with-isl
 
-build-binutils/Makefile:
-	make binutils-configure
+binutils-deb: dist/$(BINUTILS_PACKAGE).deb
 
-binutils-make: build-binutils/Makefile
+dist/$(BINUTILS_PACKAGE).deb: build-binutils/Makefile
 	cd build-binutils && make
-
-binutils-install: binutils-make
-	cd build-binutils && make install
-
-dist/$(BINUTILS_PACKAGE).deb:
-	make binutils-deb
-
-binutils-deb: binutils-make
 	mkdir -p dist/$(BINUTILS_PACKAGE)/DEBIAN
 	cd build-binutils && make install-strip DESTDIR="$(shell pwd)/dist/$(BINUTILS_PACKAGE)"
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/binutils/g' | sed 's/\$$SOFT_VERSION\$$/$(BINUTILS_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(BINUTILS_PACKAGE)/DEBIAN/control
@@ -75,9 +56,9 @@ binutils-deb: binutils-make
 binutils-install-deb: dist/$(BINUTILS_PACKAGE).deb
 	dpkg -i $<
 
-gcc-configure: gcc-$(GCC_VERSION)/ $(SYSROOT)/usr/include/ patches/gcc-$(GCC_VERSION).patch
+build-gcc/Makefile: gcc-$(GCC_VERSION)/configure $(SYSROOT)/usr/include/ patches/gcc-$(GCC_VERSION).patch
 ifndef BINUTILS
-	$(MAKE) -C . binutils-install
+	$(MAKE) binutils-install
 endif
 ifeq ($(NO_AUTOMAKE),1)
 	patch -p0 -N -r- < patches/gcc-$(GCC_VERSION)-automake.patch
@@ -87,10 +68,7 @@ else
 endif
 	cd gcc-$(GCC_VERSION) && ./contrib/download_prerequisites
 	mkdir -p build-gcc
-	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
-
-build-gcc/Makefile:
-	make gcc-configure
+	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="/usr/$(TARGET)" --with-build-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
 
 gcc-make: build-gcc/Makefile $(SYSROOT)/usr/include/
 	cd build-gcc && make all-gcc
@@ -100,10 +78,7 @@ gcc-install: gcc-make
 	cd build-gcc && make install-gcc
 	cd build-gcc && make install-target-libgcc
 
-dist/$(GCC_PACKAGE).deb:
-	#make gcc-deb
-
-gcc-deb: gcc-make
+dist/$(GCC_PACKAGE).deb: gcc-make
 	mkdir -p dist/$(GCC_PACKAGE)/DEBIAN
 	cd build-gcc && make install-strip-gcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
 	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
@@ -112,6 +87,8 @@ gcc-deb: gcc-make
 	rm -r dist/$(GCC_PACKAGE)/usr/share/info
 	rm -r dist/$(GCC_PACKAGE)/usr/share/man/man7
 	find dist/$(GCC_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
+	mkdir -p ist/$(GCC_PACKAGE)/usr/$(TARGET)/
+	cp $(SYSROOT)/usr/include dist/$(GCC_PACKAGE)/usr/$(TARGET)/
 	chmod 0755 $$(find dist/$(GCC_PACKAGE)/usr -type d)
 	chmod 0644 dist/$(GCC_PACKAGE)/usr/libexec/gcc/i386-aeros/6.1.0/liblto_plugin.so.0.0.0 $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include-fixed -type f -name '*.h')
 	fakeroot dpkg-deb -b dist/$(GCC_PACKAGE)

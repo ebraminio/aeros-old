@@ -1,0 +1,6 @@
+*.*
+kernel
+sysroot/boot
+toolchain/binutils-*/*
+toolchain/gcc-*/*
+toolchain/dist
