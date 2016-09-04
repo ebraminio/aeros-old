@@ -50,6 +50,7 @@ dist/$(BINUTILS_PACKAGE).deb: build-binutils/Makefile
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/binutils/g' | sed 's/\$$SOFT_VERSION\$$/$(BINUTILS_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(BINUTILS_PACKAGE)/DEBIAN/control
 	find dist/$(BINUTILS_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
 	rm -r dist/$(BINUTILS_PACKAGE)/usr/share/info
+	chmod 0755 $(find dist/$(BINUTILS_PACKAGE)/usr -type d)
 	fakeroot dpkg-deb -b dist/$(BINUTILS_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(BINUTILS_PACKAGE).deb
 
@@ -93,6 +94,8 @@ dist/$(GCC_PACKAGE).deb: gcc-make
 	chmod 0644 dist/$(GCC_PACKAGE)/usr/libexec/gcc/i386-aeros/6.1.0/liblto_plugin.so.0.0.0 $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include-fixed -type f -name '*.h')
 	fakeroot dpkg-deb -b dist/$(GCC_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(GCC_PACKAGE).deb
+
+gcc-deb: dist/$(GCC_PACKAGE).deb
 
 gcc-install-deb: dist/$(GCC_PACKAGE).deb
 	dpkg -i $<
