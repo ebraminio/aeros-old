@@ -71,15 +71,15 @@ endif
 	mkdir -p build-gcc
 	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="/usr/$(TARGET)" --with-build-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
 
-gcc-make: build-gcc/Makefile $(SYSROOT)/usr/include/
-	cd build-gcc && make all-gcc
-	cd build-gcc && make all-target-libgcc
-
-gcc-install: gcc-make
+gcc-install: build-gcc/Makefile
+	cd build-gcc && make install-gcc
+	cd build-gcc && make install-target-libgcc
 	cd build-gcc && make install-gcc
 	cd build-gcc && make install-target-libgcc
 
-dist/$(GCC_PACKAGE).deb: gcc-make
+dist/$(GCC_PACKAGE).deb: build-gcc/Makefile
+	cd build-gcc && make install-gcc
+	cd build-gcc && make install-target-libgcc
 	mkdir -p dist/$(GCC_PACKAGE)/DEBIAN
 	cd build-gcc && make install-strip-gcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
 	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
@@ -88,9 +88,8 @@ dist/$(GCC_PACKAGE).deb: gcc-make
 	rm -r dist/$(GCC_PACKAGE)/usr/share/info
 	rm -r dist/$(GCC_PACKAGE)/usr/share/man/man7
 	find dist/$(GCC_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
-	mkdir -p ist/$(GCC_PACKAGE)/usr/$(TARGET)/
-	mkdir dist/$(GCC_PACKAGE)/usr/$(TARGET)/include
-	cp -r $(SYSROOT)/usr/include dist/$(GCC_PACKAGE)/usr/$(TARGET)/include
+	mkdir -p dist/$(GCC_PACKAGE)/usr/$(TARGET)/include
+	cp -r $(SYSROOT)/usr/include/* dist/$(GCC_PACKAGE)/usr/$(TARGET)/include
 	chmod 0755 $$(find dist/$(GCC_PACKAGE)/usr -type d)
 	chmod 0644 dist/$(GCC_PACKAGE)/usr/libexec/gcc/i386-aeros/6.1.0/liblto_plugin.so.0.0.0 $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include-fixed -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/$(TARGET)/include -type f -name '*.h')
 	fakeroot dpkg-deb -b dist/$(GCC_PACKAGE)
