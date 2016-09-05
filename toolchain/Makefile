@@ -39,7 +39,7 @@ else
 		cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 automake-1.11
 endif
 	mkdir -p build-binutils
-	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --disable-nls --disable-werror
+	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --with-sysroot="/usr/$(TARGET)" --with-build-sysroot="$(SYSROOT)"--disable-nls --disable-werror
 
 binutils-deb: dist/$(BINUTILS_PACKAGE).deb
 
@@ -72,12 +72,14 @@ endif
 	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="/usr/$(TARGET)" --with-build-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
 
 gcc-install: build-gcc/Makefile
-	cd build-gcc && make install-gcc
-	cd build-gcc && make install-target-libgcc
+	cd build-gcc && make all-gcc
+	cd build-gcc && make all-target-libgcc
 	cd build-gcc && make install-gcc
 	cd build-gcc && make install-target-libgcc
 
 dist/$(GCC_PACKAGE).deb: build-gcc/Makefile
+	cd build-gcc && make all-gcc
+	cd build-gcc && make all-target-libgcc
 	cd build-gcc && make install-gcc
 	cd build-gcc && make install-target-libgcc
 	mkdir -p dist/$(GCC_PACKAGE)/DEBIAN
