@@ -80,8 +80,6 @@ gcc-install: build-gcc/Makefile
 dist/$(GCC_PACKAGE).deb: build-gcc/Makefile
 	cd build-gcc && make all-gcc
 	cd build-gcc && make all-target-libgcc
-	cd build-gcc && make install-gcc
-	cd build-gcc && make install-target-libgcc
 	mkdir -p dist/$(GCC_PACKAGE)/DEBIAN
 	cd build-gcc && make install-strip-gcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
 	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
