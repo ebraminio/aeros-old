@@ -1,4 +1,14 @@
-*.*
+.*
+*.img
+*.pcap
+*.txt
+*.bxrc
+.git
+.gitignore
+Dockerfile
+LICENSE
+README.md
+Makefile
 kernel
 sysroot/boot
 toolchain/binutils-*/*
