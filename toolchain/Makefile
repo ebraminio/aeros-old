@@ -1,6 +1,6 @@
 -include ../config.mk
 
-SYSROOT = $(shell pwd)/../sysroot
+SYSROOT = $(shell cd ../sysroot && pwd)
 
 BINUTILS := $(shell command -v $(TARGET)-as 2> /dev/null)
 
@@ -39,7 +39,7 @@ else
 		cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 automake-1.11
 endif
 	mkdir -p build-binutils
-	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --with-sysroot="/usr/$(TARGET)" --with-build-sysroot="$(SYSROOT)"--disable-nls --disable-werror
+	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --disable-nls --disable-werror
 
 binutils-deb: dist/$(BINUTILS_PACKAGE).deb
 
@@ -69,7 +69,7 @@ else
 endif
 	cd gcc-$(GCC_VERSION) && ./contrib/download_prerequisites
 	mkdir -p build-gcc
-	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot="/usr/$(TARGET)" --with-build-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
+	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
 
 gcc-install: build-gcc/Makefile
 	cd build-gcc && make all-gcc
