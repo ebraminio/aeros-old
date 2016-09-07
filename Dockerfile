@@ -20,7 +20,7 @@ RUN wget -c ftp://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.gz ftp://ftp.gnu.or
 && rm -rf /usr/share/man/?? \
 && rm -rf /usr/share/man/??_* \
 && rm -rf $(find /usr/share/locale -maxdepth 1 -type d ! -name 'en*' ! -name locale) \
-&& rm -rf $(find dist -maxdepth 1 -type d)
+&& rm -rf $(find dist -maxdepth 1 -type d) \
 && mv dist / \
 && cd / \
 && rm -rf /home/*
