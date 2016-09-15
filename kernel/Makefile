@@ -6,7 +6,7 @@ OBJECTS = $(C_FILES:.c=.o) $(S_FILES:.S=.o)
 
 -include ../config.mk
 
-CFLAGS += -I$(shell pwd)/include -ffreestanding -fbuiltin
+CFLAGS += -I$(SYSROOT)/usr/include -I$(shell pwd)/include -ffreestanding -fbuiltin
 LDFLAGS += -nostdlib -L$(KERNEL_DIR)/ -lgcc
 
 all: aeros-i686.kernel

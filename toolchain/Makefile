@@ -88,8 +88,8 @@ dist/$(GCC_PACKAGE).deb: build-gcc/Makefile
 	rm -r dist/$(GCC_PACKAGE)/usr/share/info
 	rm -r dist/$(GCC_PACKAGE)/usr/share/man/man7
 	find dist/$(GCC_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
-	mkdir -p dist/$(GCC_PACKAGE)/usr/$(TARGET)/include
-	cp -r $(SYSROOT)/usr/include/* dist/$(GCC_PACKAGE)/usr/$(TARGET)/include
+	mkdir -p dist/$(GCC_PACKAGE)/usr/$(TARGET)/usr/include
+	cp -r $(SYSROOT)/usr/include/* dist/$(GCC_PACKAGE)/usr/$(TARGET)/usr/include
 	chmod 0755 $$(find dist/$(GCC_PACKAGE)/usr -type d)
 	chmod 0644 dist/$(GCC_PACKAGE)/usr/libexec/gcc/i386-aeros/6.1.0/liblto_plugin.so.0.0.0 $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include-fixed -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/$(TARGET)/include -type f -name '*.h')
 	fakeroot dpkg-deb -b dist/$(GCC_PACKAGE)
