@@ -1,4 +1,4 @@
-#include "devices/ps2.h"
+#include "devices/8042.h"
 #include <stdint.h>
 #include <sys/io.h>
 #include "io/log.h"
@@ -75,7 +75,7 @@ typedef union
 ps2_status_t status;
 ps2_config_t config;
 
-uint8_t ps2_read()
+uint8_t ps2_read(void)
 {
 	status.numeric = inb(STATUS_PORT);
 	while(!status.out_full)
@@ -98,6 +98,13 @@ void ps2_init(void)
 	outb(CMD_PORT, DISABLE_PORT1);
 	
 	// Flush out buffer
+	status.numeric = inb(STATUS_PORT);
+	while(status.out_full)
+	{
+		inb(DATA_PORT);
+		status.numeric = inb(STATUS_PORT);
+	}
+
 	outb(CMD_PORT, READ_BYTE(0));
 	config.numeric = ps2_read();
 
@@ -112,9 +119,18 @@ void ps2_init(void)
 	// Enable controller
 	outb(CMD_PORT, ENABLE_PORT1);
 	config.port1_int = 1;
+	config.port1_translation = 0;
+	config.port1_clock_disabled = 0;
 	outb(CMD_PORT, WRITE_BYTE(0));
 	ps2_write(config.numeric);
-
-	// Reset devices
+	outb(CMD_PORT, READ_BYTE(0));
+	config.numeric = ps2_read();
 	
+	// Flush out buffer
+	status.numeric = inb(STATUS_PORT);
+	while(status.out_full)
+	{
+		inb(DATA_PORT);
+		status.numeric = inb(STATUS_PORT);
+	}
 }

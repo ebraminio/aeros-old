@@ -14,7 +14,7 @@
 #include "cpu/gdt.h"
 #include "cpu/idt.h"
 #include "devices/pit.h"
-#include "devices/ps2.h"
+#include "io/keyboard.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
@@ -151,7 +151,7 @@ void kernel_main(unsigned long magic, unsigned long address)
 	pit_init();
 	idt_init();
 	printf(" IDT");
-	ps2_init();
+	keyboard_init();
 
 	for(;;);
 }

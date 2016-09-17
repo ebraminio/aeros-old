@@ -37,16 +37,20 @@ void irq_install_handler(uint32_t irq, void (*handler)(regs_t*))
 
 void pic_remap(void)
 {
-	outb(PIC1_CMD, 0x11);
-	outb(PIC2_CMD, 0x11);
-	outb(PIC1_DATA, 0x20);
-	outb(PIC2_DATA, 0x28);
-	outb(PIC1_DATA, 0x04);
-	outb(PIC2_DATA, 0x02);
+	outb(PIC1_CMD, 0x11);	// Initialization sequence
+	outb(PIC2_CMD, 0x11);	//
+
+	outb(PIC1_DATA, 0x20);	// Vector offset
+	outb(PIC2_DATA, 0x28);	//
+	
+	outb(PIC1_DATA, 0x04);	// Tell PIC1 PIC2 is present at IRQ2
+	outb(PIC2_DATA, 0x02);	// Tell PIC2 it's slave
+	
 	outb(PIC1_DATA, 0x01);
 	outb(PIC2_DATA, 0x01);
-	outb(PIC1_DATA, 0x0);
-	outb(PIC2_DATA, 0x0);
+	
+	outb(PIC1_DATA, 0xFF);	// Masks
+	outb(PIC2_DATA, 0xFF);	//
 }
 
 void mask_irq(uint8_t irq)

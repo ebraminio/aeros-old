@@ -36,4 +36,5 @@ void pit_init(void)
 {
 	set_pit_freq(1000);
 	irq_install_handler(0, pit_handler);
+	unmask_irq(0);
 }
