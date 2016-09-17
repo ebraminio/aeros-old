@@ -1,0 +1,13 @@
+#config files
+.vimrc
+
+#log files
+doxylog
+
+#intermediate files
+*.o
+*.gch
+
+#final files
+*.a
+*.so
