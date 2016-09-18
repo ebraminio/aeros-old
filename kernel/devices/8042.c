@@ -80,6 +80,13 @@ uint8_t ps2_read(void)
 	status.numeric = inb(STATUS_PORT);
 	while(!status.out_full)
 		status.numeric = inb(STATUS_PORT);
+	uint8_t data = inb(DATA_PORT);
+	status.numeric = inb(STATUS_PORT);
+	return data;
+}
+
+uint8_t ps2_direct_read(void)
+{
 	return inb(DATA_PORT);
 }
 

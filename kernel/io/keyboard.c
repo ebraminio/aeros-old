@@ -1,4 +1,5 @@
 #include "io/keyboard.h"
+#include "io/ps2_device.h"
 #include "devices/8042.h"
 #include "devices/pic.h"
 #include <sys/io.h>
@@ -27,15 +28,26 @@
 #define MF2_KB_TRANSL 0x41AB
 #define MF2_KB		  0x83AB
 
+ps2_device_t kb_device = {0};
+
 void keyboard_handler(regs_t* r)
 {
-	uint8_t scan = inb(0x60);
+	if(kb_device.state & PS2_WAIT_SPECIAL)
+		kb_device.state &= ~PS2_WAIT_SPECIAL;
+	else if(kb_device.state & PS2_WAIT_DATA)
+		kb_device.state &= ~PS2_WAIT_DATA;
+	else
+	{
+		uint8_t scan = ps2_direct_read();
+	}
 }
 
 uint8_t ps2_cmd(uint8_t cmd)
 {
+	kb_device.state |= PS2_WAIT_SPECIAL;
 	ps2_write(cmd);
-	return ps2_read();
+	while(kb_device.state & PS2_WAIT_SPECIAL);
+	return ps2_direct_read();
 }
 
 uint8_t kb_type[2] = {0xFF, 0xFF};
@@ -43,23 +55,34 @@ uint8_t kb_type[2] = {0xFF, 0xFF};
 void keyboard_init()
 {
 	ps2_init();
+	kb_device.port2 = 0;
+	kb_device.state = PS2_WAIT_INPUT;
 	
 	irq_install_handler(1, keyboard_handler);
 	unmask_irq(1);
 	irq_install_handler(12, keyboard_handler);
 	unmask_irq(12);
+	
+	if(ps2_cmd(SCAN_DISABLE) != ACK)
+		panic("PS2 1 scan disable failed");
+	kb_device.state |= PS2_WAIT_DATA;
+	if(ps2_cmd(RESET_AND_TEST) != ACK || ps2_read() != TEST_SUCCESS)
+		panic("PS2 1 self-test failed");
 
-	ps2_cmd(SCAN_DISABLE);
-	if(ps2_cmd(RESET_AND_TEST) == ACK)
-		if(ps2_read() != TEST_SUCCESS)
-			panic("Self-test fail on keyboard");
-
+	kb_device.state |= PS2_WAIT_DATA;
 	if(ps2_cmd(IDENTIFY_KB) == ACK)
+	{
+		kb_device.state |= PS2_WAIT_DATA;
 		if((kb_type[0] = ps2_read()) == 0xAB)
-			kb_type[1] = ps2_read();
+		{
+			while(kb_device.state & PS2_WAIT_DATA);
+			kb_type[1] = ps2_direct_read();
+		}
+	}
 
 	if(ps2_cmd(ECHO) != ECHO_RES)
-		panic("ECHO failed on keyboard");
+		panic("PS2 1 ECHO failed");
 
-	ps2_cmd(SCAN_ENABLE);
+	if(ps2_cmd(SCAN_ENABLE) != ACK)
+		panic("PS2 1 scan enable failed");
 }
