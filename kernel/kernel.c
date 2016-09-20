@@ -15,6 +15,7 @@
 #include "cpu/idt.h"
 #include "devices/pit.h"
 #include "io/keyboard.h"
+#include "devices/pc_speaker.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
@@ -148,9 +149,10 @@ void kernel_main(unsigned long magic, unsigned long address)
 
 	gdt_init();
 	nopanic("GDT");
-	pit_init();
 	idt_init();
 	printf(" IDT");
+	pit_init();
+	pc_speaker_init();
 	keyboard_init();
 
 	for(;;);
