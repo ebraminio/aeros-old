@@ -2,7 +2,6 @@
 #include "io/ps2_device.h"
 #include "devices/8042.h"
 #include "devices/pic.h"
-#include <sys/io.h>
 #include "io/kb_layouts/fr.h"
 #include "io/log.h"
 
@@ -29,6 +28,7 @@
 #define MF2_KB		  0x83AB
 
 ps2_device_t kb_device = {0};
+uint8_t ring_buffer[255] = {0};
 
 void keyboard_handler(regs_t* r)
 {
@@ -38,7 +38,12 @@ void keyboard_handler(regs_t* r)
 		kb_device.state &= ~PS2_WAIT_DATA;
 	else
 	{
-		uint8_t scan = ps2_direct_read();
+		while(kb_device.lock);
+		kb_device.lock = 1;
+		*(kb_device.data_end++) = ps2_direct_read();
+		if(kb_device.data_end == kb_device.buffer_end)
+			kb_device.data_end = kb_device.buffer_start;
+		kb_device.lock = 0;
 	}
 }
 
@@ -55,8 +60,12 @@ uint8_t kb_type[2] = {0xFF, 0xFF};
 void keyboard_init()
 {
 	ps2_init();
+	kb_device.lock = 1;
 	kb_device.port2 = 0;
-	kb_device.state = PS2_WAIT_INPUT;
+	kb_device.state = PS2_WAIT_SPECIAL;	// Workaround to ignore data stuck in buffer
+	kb_device.data_end = kb_device.data_start = kb_device.buffer_start = ring_buffer;
+	kb_device.buffer_end = ring_buffer+sizeof(ring_buffer);
+	kb_device.lock = 0;
 	
 	irq_install_handler(1, keyboard_handler);
 	unmask_irq(1);

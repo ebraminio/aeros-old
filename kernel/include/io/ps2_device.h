@@ -11,6 +11,11 @@ typedef struct
 {
 	uint8_t port2 : 1;
 	uint8_t state : 2;
+	uint8_t lock;
+	uint8_t* buffer_start;
+	uint8_t* buffer_end;
+	uint8_t* data_start;
+	uint8_t* data_end;
 } ps2_device_t;
 
 #endif
