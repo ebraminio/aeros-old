@@ -126,7 +126,7 @@ void ps2_init(void)
 	// Enable controller
 	outb(CMD_PORT, ENABLE_PORT1);
 	config.port1_int = 1;
-	config.port1_translation = 0;
+	config.port1_translation = 1;
 	config.port1_clock_disabled = 0;
 	outb(CMD_PORT, WRITE_BYTE(0));
 	ps2_write(config.numeric);

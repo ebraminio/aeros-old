@@ -30,6 +30,11 @@
 ps2_device_t kb_device = {0};
 uint8_t ring_buffer[255] = {0};
 
+uint8_t translate_scan(uint8_t scan)
+{
+	return scan < sizeof(KEYBOARD_MAP) ? KEYBOARD_MAP[scan] : 0;
+}
+
 void keyboard_handler(regs_t* r)
 {
 	if(kb_device.state & PS2_WAIT_SPECIAL)
@@ -40,7 +45,7 @@ void keyboard_handler(regs_t* r)
 	{
 		while(kb_device.lock);
 		kb_device.lock = 1;
-		*(kb_device.data_end++) = ps2_direct_read();
+		*(kb_device.data_end++) = translate_scan(ps2_direct_read());
 		if(kb_device.data_end == kb_device.buffer_end)
 			kb_device.data_end = kb_device.buffer_start;
 		kb_device.lock = 0;

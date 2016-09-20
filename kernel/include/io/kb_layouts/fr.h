@@ -4,9 +4,7 @@
 #ifdef KB_MAP
 #error Keyboard map already loaded
 #endif
-#define KB_MAP 
-
-#define MAX_SCANCODE 0x53
+#define KB_MAP
 
 const char KEYBOARD_MAP[] = 
 {
