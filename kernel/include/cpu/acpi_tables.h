@@ -65,7 +65,7 @@ typedef struct
 	uint64_t address;
 } gas_t;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
 	acpi_hdr_t acpi_hdr;
 
@@ -90,13 +90,67 @@ typedef struct
 	uint8_t pm1_event_len;
 	uint8_t pm1_ctr_len;
 	uint8_t pm2_ctrl_len;
-	uint8_t todo[18];
-	uint16_t boot_arch_flags;
+	uint8_t pm_timer_len;
+	uint8_t gpe0_len;
+	uint8_t gpe1_len;
+	uint8_t gpe1_base;
+	uint8_t cstate_ctrl;
+	uint16_t worst_c2_latency;
+	uint16_t worst_c3_latency;
+	uint16_t flush_size;
+	uint16_t flush_stride;
+	uint8_t duty_offset;
+	uint8_t duty_width;
+	uint8_t day_alarm;
+	uint8_t month_alarm;
+	uint8_t century;
+	union
+	{
+		struct
+		{
+			uint8_t legacy_devices : 1;
+			uint8_t support_8042 : 1;
+			uint8_t no_vga : 1;
+			uint8_t no_msi : 1;
+			uint8_t no_aspm : 1;
+			uint8_t no_cmos_rtc : 1;
+		};
+		uint16_t numeric;
+	} boot_arch_flags;
 	uint8_t reserved2;
-	uint32_t flags;
+	union
+	{
+		struct
+		{
+			uint8_t wbinvd : 1;
+			uint8_t wbinvd_flush : 1;
+			uint8_t proc_c1 : 1;
+			uint8_t p_lvl2_up : 1;
+			uint8_t pwr_button : 1;
+			uint8_t slp_button : 1;
+			uint8_t fix_rtc : 1;
+			uint8_t rtc_s4 : 1;
+			uint8_t tmr_val_ext : 1;
+			uint8_t dck_cap : 1;
+			uint8_t reset_reg_sup : 1;
+			uint8_t sealed_case : 1;
+			uint8_t headless : 1;
+			uint8_t cpu_sw_slp : 1;
+			uint8_t pci_exp_wak : 1;
+			uint8_t use_platform_clock : 1;
+			uint8_t s4_rtc_sts_valid : 1;
+			uint8_t remote_power_on_cap : 1;
+			uint8_t force_apic_cluster_model : 1;
+			uint8_t force_apic_phys_dest_mode : 1;
+			uint8_t hw_reduced_acpi : 1;
+			uint8_t low_power_s0_idle_cap : 1;
+		};
+		uint32_t numeric;
+	}flags;
 	gas_t reset_reg;
 	uint8_t reset_value;
-	uint8_t reserved3[3];
+	uint16_t arm_boot_flags;
+	uint8_t minor_rev;	// ACPI 5.1
 	uint64_t x_firmware_ctrl;
 	uint64_t x_dst;
 	gas_t todo2[8];
