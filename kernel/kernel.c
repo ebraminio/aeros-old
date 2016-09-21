@@ -15,6 +15,7 @@
 #include "cpu/idt.h"
 #include "devices/pit.h"
 #include "io/keyboard.h"
+#include "io/serial.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
@@ -151,6 +152,7 @@ void kernel_main(unsigned long magic, unsigned long address)
 	pit_init();
 	idt_init();
 	printf(" IDT");
+	serial_init(1);
 	keyboard_init();
 
 	for(;;);
