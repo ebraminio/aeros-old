@@ -21,6 +21,9 @@ boot.o: ASFLAGS += -DMULTIBOOT1
 aeros-i686.kernel: $(OBJECTS) linker.ld
 	$(CC) -o $@ $(OBJECTS) $(LDFLAGS) -Wl,-d -T linker.ld -ffreestanding -fbuiltin
 
+gdb_stub: CFLAGS += -DWITH_GDB_STUB
+gdb_stub: all
+
 install: all
 	@mkdir -p $(SYSROOT)/boot/
 	@cp -uv aeros-i686.kernel $(SYSROOT)/boot/

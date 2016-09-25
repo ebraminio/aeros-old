@@ -3,7 +3,7 @@ include config.mk
 .PHONY: kernel hdd qemu
 
 SYSROOT = $(shell pwd)/sysroot
-QEMUFLAGS = -vga std -serial mon:stdio -net dump,file=netdump.pcap -net nic,model=e1000 -net user,hostfwd=tcp::5555-:5555 -s -S
+QEMUFLAGS = -vga std -monitor stdio -serial tcp:127.0.0.1:1234,server,nodelay -net dump,file=netdump.pcap -net nic,model=e1000 -net user,hostfwd=tcp::5555-:5555
 
 .DELETE_ON_ERROR: hdd.img
 

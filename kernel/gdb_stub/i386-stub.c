@@ -1,3 +1,5 @@
+#ifdef WITH_GDB_STUB
+
 /****************************************************************************
 
 		THIS SOFTWARE IS NOT COPYRIGHTED
@@ -950,3 +952,5 @@ breakpoint (void)
   if (initialized)
     BREAKPOINT ();
 }
+
+#endif

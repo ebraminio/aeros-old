@@ -2,7 +2,6 @@
 #include "devices/pic.h"
 #include <sys/io.h>
 #include "cpu/bda.h"
-#include <stdio.h>
 
 #define DATA_REG			0
 #define DIV_LATCH_LO_REG	0
@@ -130,7 +129,7 @@ void put_serial(uint8_t com, char* s)
 
 void serial_init(uint8_t com)
 {
-	const uint16_t baud_rate_divisor = 0x3;
+	const uint16_t baud_rate_divisor = 115200/9600;
 	*(uint64_t*)COM = *(uint64_t*)&bda->com1;
 
 	outb(COM[com-1] + INT_ENABLE_REG, INT_EN_DATA_AVAILABLE|INT_EN_OUT_HOLDING_REG_EMPTY|INT_EN_MODEM_STATUS_CHANGE);
@@ -140,10 +139,6 @@ void serial_init(uint8_t com)
 	outb(COM[com-1] + LINE_CTRL_REG, SET_WORD_LENGTH(8));
 	outb(COM[com-1] + FIFO_CONTROL_REG, SET_INT_TRIG_LVL(14)|CLEAR_OUT_FIFO|CLEAR_IN_FIFO|ENABLE_FIFO);
 	outb(COM[com-1] + MODEM_CTRL_REG, DATA_TERMINAL_READY|REQUEST_TO_SEND|AUX_OUT2);
-
-	put_serial(com, "COM");
-	write_serial(com, '0'+com);
-	put_serial(com, " open\n");
 
 	irq_install_handler(3, serial_handler);
 	irq_install_handler(4, serial_handler);
