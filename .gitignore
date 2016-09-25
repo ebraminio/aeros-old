@@ -8,10 +8,13 @@ bochslog.txt
 doxylog
 netdump.pcap
 serial.txt
+.*.swp
+core
 
 #intermediate files
 *.o
 *.gch
+*.sym
 
 #final files
 *.a

@@ -6,7 +6,7 @@
 #endif
 #define KB_MAP
 
-const char KEYBOARD_MAP[] = 
+const char KEYBOARD_MAP[] =
 {
 	0,	//(0)
 	0,	//ESC(1)
