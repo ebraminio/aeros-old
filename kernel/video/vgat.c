@@ -1,6 +1,7 @@
 #include "video/vga.h"
 #include "video/video.h"
 #include <stddef.h>
+#include <string.h>
 
 static void vgat_putchar(uint32_t x, uint32_t y, int c, uint32_t color);
 static void vgat_scroll(uint32_t n);
@@ -36,14 +37,16 @@ static void vgat_putchar(uint32_t x, uint32_t y, int c, uint32_t color)
 
 static void vgat_scroll(uint32_t n)
 {
+	const size_t row_size = video_device->width * 2;
+	const uint32_t offset = row_size * n;
+	for(uint8_t* ptr = video_device->buffer; ptr<video_device->buffer_end-offset; ptr += offset)
+		memcpy(ptr, ptr+offset, row_size);
+	
+	for(uint32_t y=video_device->height-n; y<video_device->height; y++)
+		for(uint32_t x=0; x<video_device->width; x++)
+			vgat_putchar(x, y, ' ', video_device->color);
+	
 	video_device->row -= n;
-	uint16_t *ptr = (uint16_t*)video_device->buffer + video_device->width*n;
-	uint32_t offset = video_device->width * n;
-	while(ptr+offset < (uint16_t*)video_device->buffer_end)
-	{
-		*ptr = *(ptr+offset);
-		ptr++;
-	}
 }
 
 static void vgat_clear(uint32_t color)

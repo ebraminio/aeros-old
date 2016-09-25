@@ -2,6 +2,7 @@
 #include "video/video.h"
 #include <stddef.h>
 #include "video/vga_fonts.h"
+#include <string.h>
 
 typedef union
 {
@@ -75,10 +76,19 @@ static void vgag_putchar(uint32_t x, uint32_t y, int c, uint32_t color)
 
 static void vgag_scroll(uint32_t n)
 {
-	//TODO
+	video_device->row -= n;
+
+	const size_t row_size = video_device->width * video_device->charcell_w * video_device->charcell_h;
+	const size_t offset = row_size * n;
+
+	for(uint8_t* p = video_device->buffer; p<video_device->buffer_end - offset; p += offset)
+		memcpy(p, p+offset, row_size);
 }
 
 static void vgag_clear(uint32_t color)
 {
-	//TODO
+	// No color option for now
+	memset(video_device->buffer, 0, video_device->buffer_end-video_device->buffer);
+	video_device->row = 0;
+	video_device->col = 0;
 }
