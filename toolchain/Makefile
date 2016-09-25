@@ -20,10 +20,10 @@ LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-desc
 all:
 
 binutils-%.tar.gz:
-	wget -c ftp://ftp.gnu.org/gnu/binutils/$@
+	wget -nv -c ftp://ftp.gnu.org/gnu/binutils/$@
 
 gcc-%.tar.gz:
-	wget -c ftp://ftp.gnu.org/gnu/gcc/gcc-$(GCC_VERSION)/$@
+	wget -nv -c ftp://ftp.gnu.org/gnu/gcc/gcc-$(GCC_VERSION)/$@
 
 binutils-%/configure: binutils-%.tar.gz
 	tar xzf $<
@@ -89,7 +89,7 @@ dist/$(GCC_PACKAGE).deb: build-gcc/Makefile
 	rm -r dist/$(GCC_PACKAGE)/usr/share/man/man7
 	find dist/$(GCC_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
 	mkdir -p dist/$(GCC_PACKAGE)/usr/$(TARGET)/usr/include
-	cp -r $(SYSROOT)/usr/include/* dist/$(GCC_PACKAGE)/usr/$(TARGET)/usr/include
+	cp -r $(SYSROOT)/usr/include/* dist/$(GCC_PACKAGE)/usr/$(TARGET)/include
 	chmod 0755 $$(find dist/$(GCC_PACKAGE)/usr -type d)
 	chmod 0644 dist/$(GCC_PACKAGE)/usr/libexec/gcc/i386-aeros/6.1.0/liblto_plugin.so.0.0.0 $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/lib/gcc/$(TARGET)/$(GCC_VERSION)/include-fixed -type f -name '*.h') $$(find dist/$(GCC_PACKAGE)/usr/$(TARGET)/include -type f -name '*.h')
 	fakeroot dpkg-deb -b dist/$(GCC_PACKAGE)
