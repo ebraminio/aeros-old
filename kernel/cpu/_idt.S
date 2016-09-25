@@ -77,6 +77,7 @@ _isr_common_stub:
 	pop %fs
 	pop %es
 	pop %ds
+	pop %eax	# Drop CR3
 	popa
 	add $8, %esp	# Cleans up the pushed error code and pushed ISR number
 	iret
