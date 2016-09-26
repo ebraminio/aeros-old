@@ -103,7 +103,7 @@ void ps2_init(void)
 	//Disable controllers until configuration is done
 	outb(CMD_PORT, DISABLE_PORT2);
 	outb(CMD_PORT, DISABLE_PORT1);
-	
+
 	// Flush out buffer
 	status.numeric = inb(STATUS_PORT);
 	while(status.out_full)
@@ -132,7 +132,7 @@ void ps2_init(void)
 	ps2_write(config.numeric);
 	outb(CMD_PORT, READ_BYTE(0));
 	config.numeric = ps2_read();
-	
+
 	// Flush out buffer
 	status.numeric = inb(STATUS_PORT);
 	while(status.out_full)

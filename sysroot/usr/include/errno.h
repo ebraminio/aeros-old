@@ -47,7 +47,7 @@ extern int errno;
 #define ENOSYS			38	/**< Function not implemented */
 #define ENOTEMPTY		39	/**< Directory not empty */
 #define ELOOP			40	/**< Too many symbolic links encountered */
-#define EWOULDBLOCK	EAGAIN /**< Operation would block */
+#define EWOULDBLOCK	EAGAIN	/**< Operation would block */
 #define ENOMSG			42	/**< No message of desired type */
 #define EIDRM			43	/**< Identifier removed */
 #define ECHRNG			44	/**< Channel number out of range */
@@ -107,7 +107,7 @@ extern int errno;
 #define EPFNOSUPPORT	96	/**< Protocol family not supported */
 #define EAFNOSUPPORT	97	/**< Address family not supported by protocol */
 #define EADDRINUSE		98	/**< Address already in use */
-#define EADDRNOTAVAIL	 99	/**< Cannot assign requested address */
+#define EADDRNOTAVAIL	99	/**< Cannot assign requested address */
 #define ENETDOWN		100	/**< Network is down */
 #define ENETUNREACH		101	/**< Network is unreachable */
 #define ENETRESET		102	/**< Network dropped connection because of reset */

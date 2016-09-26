@@ -32,7 +32,7 @@ struct sigevent
 	int sigev_notify;
 	int sigev_signo;
 	union sigval sigev_value;
-	void(*sigev_notify_function)(union sigval);
+	void (*sigev_notify_function)(union sigval);
 	//(pthread_attr_t*) sigev_notify_attributes notification attributes
 };
 
@@ -73,13 +73,13 @@ typedef struct sigaction
 	int sa_flags;		/**< Special flags */
 };
 
-#define	SIG_BLOCK	0		 /* Block signals.  */
-#define	SIG_UNBLOCK	1		 /* Unblock signals.  */
-#define	SIG_SETMASK	2		 /* Set the set of blocked signals.  */
+#define	SIG_BLOCK	0		/* Block signals.  */
+#define	SIG_UNBLOCK	1		/* Unblock signals.  */
+#define	SIG_SETMASK	2		/* Set the set of blocked signals.  */
 
-#define SIG_DFL (void (*)(int))1
-#define SIG_ERR (void (*)(int))2
-#define SIG_IGN (void (*)(int))4
+#define SIG_DFL (void (*)(int)) 1
+#define SIG_ERR (void (*)(int)) 2
+#define SIG_IGN (void (*)(int)) 4
 
 void (*signal(int sig, void (*func)(int)))(int);
 int sigsetmask(int mask);

@@ -21,11 +21,11 @@
 #define TEST_FAIL2 0xFD
 #define RESEND 0xFE
 
-#define STD_PS2_MOUSE 0x0
-#define MOUSE_WT_SCRL 0x3
-#define FIVE_BT_MOUSE 0x4
-#define MF2_KB_TRANSL 0x41AB
-#define MF2_KB		  0x83AB
+#define STD_PS2_MOUSE	0x0
+#define MOUSE_WT_SCRL	0x3
+#define FIVE_BT_MOUSE	0x4
+#define MF2_KB_TRANSL	0x41AB
+#define MF2_KB			0x83AB
 
 ps2_device_t kb_device = {0};
 uint8_t ring_buffer[255] = {0};
@@ -71,12 +71,12 @@ void keyboard_init()
 	kb_device.data_end = kb_device.data_start = kb_device.buffer_start = ring_buffer;
 	kb_device.buffer_end = ring_buffer+sizeof(ring_buffer);
 	kb_device.lock = 0;
-	
+
 	irq_install_handler(1, keyboard_handler);
 	unmask_irq(1);
 	irq_install_handler(12, keyboard_handler);
 	unmask_irq(12);
-	
+
 	if(ps2_cmd(SCAN_DISABLE) != ACK)
 		panic("PS2 1 scan disable failed");
 	kb_device.state |= PS2_WAIT_DATA;

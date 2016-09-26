@@ -43,11 +43,6 @@ typedef struct __attribute__((packed))
 	uint8_t zero : 2;
 	uint8_t size : 1;			// 0: 16bit protected mode. 1: 32bit protected mode
 	uint8_t granularity : 1;	// 0: 1B. 1: 4KB
-	/*union
-	{
-		uint8_t data_direction : 1;		// 1: grow down
-		uint8_t conforming_code : 1;	// Conforming segments allow execution from
-	};	// lower or equal DPL. Non-conforming segments restrict to ring set in dpl*/
 	uint8_t base_high;
 } gdt_entry_t;
 

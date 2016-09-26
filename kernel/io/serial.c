@@ -7,7 +7,7 @@
 #define DATA_REG			0
 #define DIV_LATCH_LO_REG	0
 
-#define DIV_LATCH_HI_REG 	1
+#define DIV_LATCH_HI_REG	1
 #define INT_ENABLE_REG		1
 #define INT_EN_DATA_AVAILABLE			(1<<0)
 #define INT_EN_OUT_HOLDING_REG_EMPTY	(1<<1)

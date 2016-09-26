@@ -20,7 +20,7 @@ void* memset(void* s, int c, size_t n)
 		s64[i] = c64;
 	for(i*=8; i<n; i++)
 		((uint8_t*)s)[i] = c8;
-	
+
 	return s;
 }
 
@@ -34,6 +34,6 @@ void* memcpy(void* dest, const void* src, size_t n)
 		d[i] = s[i];
 	for(i*=8; i<n; i++)
 		((uint8_t*)dest)[i] = ((uint8_t*)src)[i];
-	
+
 	return (void*)src;
 }

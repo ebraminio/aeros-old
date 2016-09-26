@@ -113,11 +113,11 @@ int vprintf(const char* format, va_list argp)
 						if(!precision_mod)
 							char_num += puts(va_arg(argp, char*));
 						else for(char* str = va_arg(argp, char*); *str != 0 && precision; str++)
-						{
-							putchar(*str);
-							precision--;
-							char_num++;
-						}
+							{
+								putchar(*str);
+								precision--;
+								char_num++;
+							}
 						break;
 					case '.':
 						precision_mod=1;

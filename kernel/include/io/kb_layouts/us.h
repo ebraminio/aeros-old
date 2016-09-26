@@ -4,6 +4,6 @@
 #ifdef KB_MAP
 #error Keyboard map already loaded
 #endif
-#define KB_MAP 
+#define KB_MAP
 
 #endif

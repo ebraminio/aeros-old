@@ -110,13 +110,13 @@ void acpi_enable(void)
 			for(; i<300; i++)
 				if(inw(pm1a_ctrl_blk) & SCI_EN)
 					break;
-				//else sleep(10);
+//				else sleep(10);
 			// TODO implement sleep, at least with the PIT
 			if(pm1b_ctrl_blk)
 				for(; i<300; i++)
 					if(inw(pm1b_ctrl_blk) & SCI_EN)
 						break;
-					//else sleep(10);
+//					else sleep(10);
 
 			if(i==300)
 				panic("Failed to enable ACPI");

@@ -42,13 +42,13 @@ void pic_remap(void)
 
 	outb(PIC1_DATA, 0x20);	// Vector offset
 	outb(PIC2_DATA, 0x28);	//
-	
+
 	outb(PIC1_DATA, 0x04);	// Tell PIC1 PIC2 is present at IRQ2
 	outb(PIC2_DATA, 0x02);	// Tell PIC2 it's slave
-	
+
 	outb(PIC1_DATA, 0x01);
 	outb(PIC2_DATA, 0x01);
-	
+
 	outb(PIC1_DATA, 0xFF);	// Masks
 	outb(PIC2_DATA, 0xFF);	//
 }

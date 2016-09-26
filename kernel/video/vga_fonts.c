@@ -1,7 +1,7 @@
 /**
  *  \file
  *  \brief Contains 8x8 and 8x16 VGA fonts
- *  
+ *
  *  \b w x \b h VGA fonts are arrays of characters.\n
  *  Each character is an array of \b h lines (8 or 16 here)\n
  *  Each line is a \b w bits number (8 here), describing \b w pixels.\n
