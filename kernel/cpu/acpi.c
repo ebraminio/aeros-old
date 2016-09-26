@@ -72,7 +72,7 @@ void acpi_init(void)
 			for(uint8_t j=0; j<sdt_num; j++)
 				switch(((acpi_hdr_t*)rsdt->sdts[j])->sig)
 				{
-					case FADT_SIG: ;
+					case FADT_SIG:;
 						const fadt_t* fadt = (fadt_t*)(acpi_hdr_t*)rsdt->sdts[j];
 						smi_cmd_port = fadt->smi_cmd_port;
 						acpi_enable_cmd = fadt->acpi_enable;
@@ -87,7 +87,7 @@ void acpi_init(void)
 						break;
 					case SSDT_SIG: find_acpi_s5((dsdt_t*)rsdt->sdts[j]);
 						break;
-					case MADT_SIG: ;
+					case MADT_SIG:;
 						const madt_t* madt = (madt_t*)(acpi_hdr_t*)rsdt->sdts[j];
 						break;
 				}
@@ -123,7 +123,7 @@ void acpi_enable(void)
 		}
 }
 
- __attribute__ ((noreturn))
+__attribute__((noreturn))
 void acpi_poweroff(void)
 {
 	if(!shutdown_available)

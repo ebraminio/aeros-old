@@ -147,7 +147,7 @@
 #define SCNuMAX "l" "u"
 #define SCNxMAX "l" "x"
 
-#define stroimax(a,b,c) (intmax_t)stroll(a,b,c)
-#define stroumax(a,b,c) (uintmax_t)stroull(a,b,c)
+#define stroimax(a, b, c) (intmax_t)stroll(a, b, c)
+#define stroumax(a, b, c) (uintmax_t)stroull(a, b, c)
 
 #endif

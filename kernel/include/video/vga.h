@@ -28,7 +28,7 @@ enum vga_color
 
 #define VGA_DEFAULT_FB ((void*)0xB8000)
 
-video_device_t *vgat_init(void *text_buffer, uint16_t width, uint16_t height);
+video_device_t* vgat_init(void *text_buffer, uint16_t width, uint16_t height);
 video_device_t* vgag_init(vbe_controller_t* controller, vbe_mode_t* mode);
 
 #endif

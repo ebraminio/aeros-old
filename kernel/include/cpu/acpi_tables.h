@@ -146,7 +146,7 @@ typedef struct __attribute__((packed))
 			uint8_t low_power_s0_idle_cap : 1;
 		};
 		uint32_t numeric;
-	}flags;
+	} flags;
 	gas_t reset_reg;
 	uint8_t reset_value;
 	uint16_t arm_boot_flags;

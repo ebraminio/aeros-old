@@ -3,7 +3,7 @@
 
 typedef struct __attribute__((packed))
 {
-	uint16_t com1, com2,com3, com4;
+	uint16_t com1, com2, com3, com4;
 	uint16_t lpt1, lpt2, lpt3;
 	uint16_t ebda;
 	struct __attribute__((packed))

@@ -37,14 +37,14 @@ struct stat
 #define S_ISLNK(m) (m==S_IFLNK)
 #define S_ISSOCK(m) (m==S_IFSOCK)
 
-int chmod(const char* , mode_t);
+int chmod(const char*, mode_t);
 int fchmod(int, mode_t);
 int stat(const char* path, struct stat* buff);
 int fstat(int fd, struct stat* buf);
 int lstat(const char* path, struct stat* buf);
-int mkdir(const char* , mode_t);
-int mkfifo(const char* , mode_t);
-int mknod(const char* , mode_t, dev_t);
+int mkdir(const char*, mode_t);
+int mkfifo(const char*, mode_t);
+int mknod(const char*, mode_t, dev_t);
 mode_t umask(mode_t);
 
 #endif

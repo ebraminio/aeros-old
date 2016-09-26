@@ -15,7 +15,7 @@ typedef struct __attribute__((packed))
 	uint16_t cs;
 	uint8_t zero;
 	uint8_t type : 4;
-	uint8_t dpl: 2;
+	uint8_t dpl : 2;
 	uint8_t ss : 1;
 	uint8_t present : 1;
 	uint16_t offset_high;
@@ -196,9 +196,9 @@ void fault_handler(regs_t* r)
 	if(r->int_no == 3)
 	{
 		nopanic("Breakpoint interrupt\n"
-			"EAX:0x%08x\tEBX:0x%08x\tECX:0x%08x\tEDX:0x%08x\n"
-			"EDI:0x%08x\tESI:0x%08x\tEIP:0x%08x\tESP:0x%08x\tEBP:0x%08x\n"
-			"CS:0x%04x\tDS:0x%04x\tSS:0x%04x\n",
+				"EAX:0x%08x\tEBX:0x%08x\tECX:0x%08x\tEDX:0x%08x\n"
+				"EDI:0x%08x\tESI:0x%08x\tEIP:0x%08x\tESP:0x%08x\tEBP:0x%08x\n"
+				"CS:0x%04x\tDS:0x%04x\tSS:0x%04x\n",
 			r->eax, r->ebx, r->ecx, r->edx,
 			r->edi, r->esi, r->eip, r->esp, r->ebp,
 			r->cs&0xFFFF, r->ds&0xFFFF, r->ss&0xFFFF);
@@ -207,9 +207,9 @@ void fault_handler(regs_t* r)
 
 	if (r->int_no < 32)
 		panic("%s Exception(%d) err code:0x%x. System Halted!\n"
-			"EAX:0x%08x\tEBX:0x%08x\tECX:0x%08x\tEDX:0x%08x\n"
-			"ESI:0x%08x\tEDI:0x%08x\tEIP:0x%08x\tESP:0x%08x\tEBP:0x%08x\n"
-			"CS:0x%04x\tDS:0x%04x\tSS:0x%04x",
+			  "EAX:0x%08x\tEBX:0x%08x\tECX:0x%08x\tEDX:0x%08x\n"
+			  "ESI:0x%08x\tEDI:0x%08x\tEIP:0x%08x\tESP:0x%08x\tEBP:0x%08x\n"
+			  "CS:0x%04x\tDS:0x%04x\tSS:0x%04x",
 			exception_messages[r->int_no], r->int_no, r->err_code,
 			r->eax, r->ebx, r->ecx, r->edx,
 			r->esi, r->edi, r->eip, r->esp, r->ebp,

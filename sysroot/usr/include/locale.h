@@ -11,6 +11,6 @@
 #define LC_NUMERIC	6
 #define LC_TIME		7
 
-char *setlocale(int category, const char *locale);
+char* setlocale(int category, const char *locale);
 
 #endif

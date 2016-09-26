@@ -32,7 +32,7 @@ extern void _enter_usermode(void);
  *  \return Does not return
  *  \see multiboot.h multiboot2.h
  */
-__attribute__ ((noreturn))
+__attribute__((noreturn))
 void kernel_main(unsigned long magic, unsigned long address)
 {
 	video_init();		// Initialize builtin VGA text mode driver
@@ -110,7 +110,7 @@ void kernel_main(unsigned long magic, unsigned long address)
 	{
 		multiboot_drive_t* drivelist = (multiboot_drive_t*)mboot_info->drives_addr;
 		printf("\t\tDrives: %d", mboot_info->drives_length);
-		for(uint8_t i=0; i<mboot_info->drives_length;i++)
+		for(uint8_t i=0; i<mboot_info->drives_length; i++)
 			printf("\n\t\t\t-n°%d Mode %s CHS:%d-%d-%d", drivelist[i].drive_number, drivelist[i].mode == MULTIBOOT_CHS ? "CHS" : "LBA",
 				drivelist[i].drive_cylinders, drivelist[i].drive_heads, drivelist[i].drive_sectors);
 		putchar('\n');

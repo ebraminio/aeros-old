@@ -35,7 +35,6 @@ int vprintf(const char* format, va_list argp)
 			uint8_t done=0;
 
 			while(!done)
-			{
 				switch(*(++p))
 				{
 					case 'n':
@@ -99,7 +98,7 @@ int vprintf(const char* format, va_list argp)
 						char_num += ptr-buffer;
 
 						if(digit_num != 0)
-							for(uint8_t i=0;i<digit_num-(ptr-buffer);i++)
+							for(uint8_t i=0; i<digit_num-(ptr-buffer); i++)
 							{
 								putchar('0');
 								char_num++;
@@ -136,7 +135,6 @@ int vprintf(const char* format, va_list argp)
 					default:
 						putchar(*(p-1));
 				}
-			}
 		}
 	return char_num;
 }
@@ -162,7 +160,6 @@ int vsprintf(char *restrict s, const char *restrict format, va_list argp)
 			uint8_t done=0;
 
 			while(!done)
-			{
 				switch(*(++p))
 				{
 					case 'n':
@@ -219,7 +216,7 @@ int vsprintf(char *restrict s, const char *restrict format, va_list argp)
 						} while (value);
 
 						if(digit_num != 0)
-							for(uint8_t i=0;i<digit_num-(ptr-buffer);i++)
+							for(uint8_t i=0; i<digit_num-(ptr-buffer); i++)
 								s[char_num++] = '0';
 
 						while(ptr > buffer)
@@ -250,7 +247,6 @@ int vsprintf(char *restrict s, const char *restrict format, va_list argp)
 					default:
 						s[char_num++] = *(p-1);
 				}
-			}
 		}
 	s[char_num++] = '\0';
 	return char_num;

@@ -43,7 +43,6 @@ struct icmphdr
 #define ICMP_ADDRESSREPLY	18	/**< Address Mask Reply */
 #define NR_ICMP_TYPES		18
 
-
 /* Codes for UNREACH. */
 #define ICMP_NET_UNREACH	0	/**< Network Unreachable */
 #define ICMP_HOST_UNREACH	1	/**< Host Unreachable */

@@ -30,7 +30,7 @@ void* memcpy(void* dest, const void* src, size_t n)
 	const uint64_t* s = (const uint64_t*)src;
 	size_t i=0;
 
-	for(;i < n/8; i++)
+	for(; i < n/8; i++)
 		d[i] = s[i];
 	for(i*=8; i<n; i++)
 		((uint8_t*)dest)[i] = ((uint8_t*)src)[i];

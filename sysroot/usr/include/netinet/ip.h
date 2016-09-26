@@ -19,6 +19,6 @@ struct iphdr
 	uint32_t saddr;
 	uint32_t daddr;
 	// Options start here
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 #endif

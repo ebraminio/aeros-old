@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
 #define RANDMAX 32767
@@ -19,7 +18,7 @@ long labs(long);
 int setenv(const char *name, const char *value, int overwrite);
 int unsetenv(const char *name);
 char* getenv(const char *name);
-void abort(void) __attribute__ ((__noreturn__));
+void abort(void) __attribute__((__noreturn__));
 int atoi(const char *nptr);
 long atol(const char *nptr);
 long long atoll(const char *nptr);

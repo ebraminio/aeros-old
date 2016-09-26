@@ -16,7 +16,6 @@ void vbe_init(vbe_controller_t* controller, vbe_mode_t* mode)
 	video_device = vgag_init(controller, mode);
 }
 
-
 int puts(const char* s)
 {
 	char* ptr = (char*)s;
@@ -45,10 +44,7 @@ int putchar(int c)
 		case BS: video_device->putchar(--video_device->col*video_device->charcell_w, video_device->row*video_device->charcell_h, ' ', video_device->color);
 			break;
 		case TAB:
-			do
-			{
-				putchar(' ');
-			}
+			do putchar(' ');
 			while(video_device->col%TAB_SIZE);
 			break;
 		case LF:

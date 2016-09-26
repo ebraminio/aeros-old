@@ -16,7 +16,6 @@
 #define ENABLE_SLEEP_MODE				(1<<4)
 #define ENABLE_LOW_POWER_MODE			(1<<5)
 
-
 #define INT_IDENTIF_REG		2	// Read-only
 #define INT_PENDING			(1<<0)
 #define GET_INT_TYPE(x)		((x>>1)&3)
