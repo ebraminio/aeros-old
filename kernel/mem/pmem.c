@@ -4,9 +4,64 @@
 
 #define BLOCK_SIZE 4096
 
+extern const uint8_t _kernel_base;
+extern const uint8_t _kernel_end;
+
 size_t memory_size = 0;
 size_t used_blocks = 0;
 uint8_t block_map[4*1024*1024/BLOCK_SIZE*1024/8];
+
+void dealloc_blocks(uintptr_t start, uintptr_t end)
+{
+	size_t bit = start/BLOCK_SIZE;
+	size_t bit_end = end/BLOCK_SIZE;
+	if(start%BLOCK_SIZE)	// Only use full pages
+		bit++;
+
+	while(bit%8)	// Complete current 8bits cell
+	{
+		block_map[bit/8] &= ~(1 << (bit%8));
+		bit++;
+	}
+
+	while(bit+8 < bit_end)	// Fill every 8bits cell we can
+	{
+		block_map[bit/8] = 0;
+		bit += 8;
+	}
+
+	while(bit<bit_end)
+	{
+		block_map[bit/8] &= ~(1 << (bit%8));
+		bit++;
+	}
+}
+
+void alloc_blocks(uintptr_t start, uintptr_t end)
+{
+	size_t bit = start/BLOCK_SIZE;
+	size_t bit_end = end/BLOCK_SIZE;
+	if(start%BLOCK_SIZE)
+		start--;
+
+	while(bit%8)
+	{
+		block_map[bit/8] |= 1<<(bit%8);
+		bit--;
+	}
+
+	while(bit+8 < bit_end)
+	{
+		block_map[bit/8] = 0xFF;
+		bit+=8;
+	}
+
+	while(bit<bit_end)
+	{
+		block_map[bit/8] |= 1<<(bit%8);
+		bit++;
+	}
+}
 
 void pmem_init(uint32_t mem_lower, uint32_t upper_mem, uint32_t mmap_addr, uint32_t mmap_length)
 {
@@ -20,34 +75,15 @@ void pmem_init(uint32_t mem_lower, uint32_t upper_mem, uint32_t mmap_addr, uint3
 	{
 		if(mmap->type == 1)
 		{
-			size_t bit = mmap->addr/BLOCK_SIZE;
-			size_t bit_end = bit + mmap->len/BLOCK_SIZE;
-			if(mmap->addr%BLOCK_SIZE)	// Only use full pages
-				bit += BLOCK_SIZE;
-
-			while(bit%8)	// Complete current 8bits cell
-			{
-				block_map[bit/8] &= ~(1 << (bit%8));
-				bit++;
-			}
-
-			while(bit+8 < bit_end)	// Fill every 8bits cell we can
-			{
-				block_map[bit/8] = 0;
-				bit += 8;
-			}
-
-			while(bit<bit_end)
-			{
-				block_map[bit/8] &= ~(1 << (bit%8));
-				bit++;
-			}
-
+			dealloc_blocks(mmap->addr, mmap->addr+mmap->len);
 			memory_size += mmap->len;
 		}
 		mmap = (multiboot_memory_map_t*)((uintptr_t)mmap+mmap->size+4);
 	}
 	block_map[0] |= 1;	// First block should not be used
+
+	//Protect kernel blocks
+	alloc_blocks((uintptr_t)&_kernel_base, (uintptr_t)&_kernel_end);
 }
 
 size_t p_find_free(void)

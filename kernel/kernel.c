@@ -20,8 +20,6 @@
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
-extern const uint8_t _kernel_base;
-extern const uint8_t _kernel_end;
 extern const uint8_t _stack_bottom;
 extern const uint8_t _stack_top;
 extern const uint8_t _initial_esp;
