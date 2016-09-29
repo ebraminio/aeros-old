@@ -6,6 +6,8 @@
 
 extern const uint8_t _kernel_base;
 extern const uint8_t _kernel_end;
+extern const uint8_t _stack_bottom;
+extern const uint8_t _stack_top;
 
 size_t memory_size = 0;
 size_t used_blocks = 0;
@@ -80,10 +82,11 @@ void pmem_init(uint32_t mem_lower, uint32_t upper_mem, uint32_t mmap_addr, uint3
 		}
 		mmap = (multiboot_memory_map_t*)((uintptr_t)mmap+mmap->size+4);
 	}
-	block_map[0] |= 1;	// First block should not be used
 
+	alloc_blocks(0, 0x100000);
 	//Protect kernel blocks
 	alloc_blocks((uintptr_t)&_kernel_base, (uintptr_t)&_kernel_end);
+	alloc_blocks((uintptr_t)&_stack_bottom, (uintptr_t)&_stack_top);
 }
 
 size_t p_find_free(void)

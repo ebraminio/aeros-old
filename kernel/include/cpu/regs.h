@@ -6,7 +6,7 @@
 typedef struct
 {
 	uint32_t gs, fs, es, ds;
-	uint32_t cr3;
+	uint32_t cr0, cr1, cr2, cr3, cr4;
 	uintptr_t edi, esi, ebp, esp;
 	uint32_t ebx, edx, ecx, eax;
 	uint32_t int_no, err_code;

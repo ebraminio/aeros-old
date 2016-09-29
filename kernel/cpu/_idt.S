@@ -56,7 +56,15 @@ DEF_ISR(31)
 .type _isr_common_stub, @function
 _isr_common_stub:
 	pusha
+	mov %cr4, %eax
+	push %eax
 	mov %cr3, %eax
+	push %eax
+	mov %cr2, %eax
+	push %eax
+	mov %cr1,%eax
+	push %eax
+	mov %cr0,%eax
 	push %eax
 	push %ds
 	push %es

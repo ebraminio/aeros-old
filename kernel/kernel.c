@@ -17,6 +17,7 @@
 #include "io/keyboard.h"
 #include "io/serial.h"
 #include "mem/pmem.h"
+#include "mem/vmem.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
@@ -60,6 +61,9 @@ void kernel_main(unsigned long magic, unsigned long address)
 	printf(" ACPI");
 	pmem_init(mboot_info->mem_lower, mboot_info->mem_upper, mboot_info->mmap_addr, mboot_info->mmap_length);
 	printf(" PMEM");
+	vmem_init();
+	printf(" VMEM");
+	putchar('\n');
 
 	char id[13];
 	char brand[48];
