@@ -1,5 +1,4 @@
 #include "mem/pmem.h"
-#include "multiboot.h"
 #include <string.h>
 
 #define BLOCK_SIZE 4096
@@ -65,15 +64,15 @@ void alloc_blocks(uintptr_t start, uintptr_t end)
 	}
 }
 
-void pmem_init(uint32_t mem_lower, uint32_t upper_mem, uint32_t mmap_addr, uint32_t mmap_length)
+void pmem_init(multiboot_info_t* mboot_info)
 {
 	memset(block_map, 0xFF, sizeof(block_map));
 
-	const uint32_t page_end = 0x100000 + upper_mem*1024;
+	const uint32_t page_end = 0x100000 + mboot_info->mem_upper*1024;
 
-	multiboot_memory_map_t* mmap = (multiboot_memory_map_t*)mmap_addr;
+	multiboot_memory_map_t* mmap = (multiboot_memory_map_t*)mboot_info->mmap_addr;
 
-	while((uint32_t)mmap < mmap_addr+mmap_length)
+	while((uintptr_t)mmap < mboot_info->mmap_addr+mboot_info->mmap_length)
 	{
 		if(mmap->type == 1)
 		{
@@ -84,9 +83,16 @@ void pmem_init(uint32_t mem_lower, uint32_t upper_mem, uint32_t mmap_addr, uint3
 	}
 
 	alloc_blocks(0, 0x100000);
-	//Protect kernel blocks
 	alloc_blocks((uintptr_t)&_kernel_base, (uintptr_t)&_kernel_end);
 	alloc_blocks((uintptr_t)&_stack_bottom, (uintptr_t)&_stack_top);
+
+	if(mboot_info->flags & MULTIBOOT_INFO_CMDLINE)
+		alloc_blocks(mboot_info->cmdline, (mboot_info->cmdline&~0xFFF)+BLOCK_SIZE);
+	if(mboot_info->flags & MULTIBOOT_INFO_DRIVE_INFO)
+		alloc_blocks(mboot_info->drives_addr, (mboot_info->drives_addr&~0xFFF)+mboot_info->drives_length);
+	if(mboot_info->flags & MULTIBOOT_INFO_BOOT_LOADER_NAME)
+		alloc_blocks(mboot_info->boot_loader_name, (mboot_info->boot_loader_name&~0xFFF)+BLOCK_SIZE);
+	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO);
 }
 
 size_t p_find_free(void)

@@ -1,5 +1,4 @@
 #include "mem/vmem.h"
-#include <stdint.h>
 #include "mem/pmem.h"
 #include <stddef.h>
 

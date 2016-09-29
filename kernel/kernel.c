@@ -59,7 +59,7 @@ void kernel_main(unsigned long magic, unsigned long address)
 	printf(" PIT");
 	acpi_init();
 	printf(" ACPI");
-	pmem_init(mboot_info->mem_lower, mboot_info->mem_upper, mboot_info->mmap_addr, mboot_info->mmap_length);
+	pmem_init(mboot_info);
 	printf(" PMEM");
 	vmem_init();
 	printf(" VMEM");
@@ -102,7 +102,10 @@ void kernel_main(unsigned long magic, unsigned long address)
 	}
 
 	if(mboot_info->flags & MULTIBOOT_INFO_CMDLINE)
+	{
+		vmap(mboot_info->cmdline, mboot_info->cmdline, 4096);
 		printf("\t\tKernel command-line: %s\n", (char*)mboot_info->cmdline);
+	}
 	if(mboot_info->flags & MULTIBOOT_INFO_DRIVE_INFO)
 	{
 		multiboot_drive_t* drivelist = (multiboot_drive_t*)mboot_info->drives_addr;
