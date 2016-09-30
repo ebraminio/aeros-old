@@ -1,20 +1,18 @@
 #define ASM_FILE
 
-#define DEF_ISR(NUM) .global _isr##NUM## ;\
-.type _isr##NUM##, @function ;\
+#define DEF_ISR(NUM) .global _isr##NUM##;\
+.type _isr##NUM##, @function;\
 _isr##NUM##: \
-	xchgw %bx, %bx ;\
-	cli ;\
-	push $0 ;\
-	push $##NUM## ;\
+	cli;\
+	push $0;\
+	push $##NUM##;\
 	jmp _isr_common_stub
 
-#define DEF_ISR_ERR(NUM) .global _isr##NUM## ;\
-.type _isr##NUM##, @function ;\
+#define DEF_ISR_ERR(NUM) .global _isr##NUM##;\
+.type _isr##NUM##, @function;\
 _isr##NUM##: \
-	xchgw %bx, %bx ;\
-	cli ;\
-	push $##NUM## ;\
+	cli;\
+	push $##NUM##;\
 	jmp _isr_common_stub
 
 .section .text
@@ -62,9 +60,7 @@ _isr_common_stub:
 	push %eax
 	mov %cr2, %eax
 	push %eax
-	mov %cr1,%eax
-	push %eax
-	mov %cr0,%eax
+	mov %cr0, %eax
 	push %eax
 	push %ds
 	push %es
@@ -77,24 +73,26 @@ _isr_common_stub:
 	mov %ax, %gs
 	mov %esp, %eax
 	push %eax
-	#mov fault_handler, %eax
-	#call *%eax	# A special call, preserves the 'eip' register
 	call fault_handler
 	pop %eax
 	pop %gs
 	pop %fs
 	pop %es
 	pop %ds
+	pop %eax	#Drop CRs
+	pop %eax
+	pop %eax
+	pop %eax
 	popa
 	add $8, %esp	# Cleans up the pushed error code and pushed ISR number
 	iret
 
-#define DEF_IRQ(NUM) .global _irq##NUM## ;\
-.type _irq##NUM##, @function ;\
-_irq##NUM##: ;\
-	cli ;\
-	push $0 ;\
-	push $(##NUM##+32) ;\
+#define DEF_IRQ(NUM) .global _irq##NUM##;\
+.type _irq##NUM##, @function;\
+_irq##NUM##:;\
+	cli;\
+	push $0;\
+	push $(##NUM##+32);\
 	jmp irq_common_stub
 
 DEF_IRQ(0)
@@ -118,7 +116,13 @@ DEF_IRQ(128)
 .type irq_common_stub, @function
 irq_common_stub:
 	pusha
+	mov %cr4, %eax
+	push %eax
 	mov %cr3, %eax
+	push %eax
+	mov %cr2, %eax
+	push %eax
+	mov %cr0, %eax
 	push %eax
 	push %ds
 	push %es
@@ -137,7 +141,10 @@ irq_common_stub:
 	pop %fs
 	pop %es
 	pop %ds
-	pop %eax	#Drop CR3
+	pop %eax	#Drop CRs
+	pop %eax
+	pop %eax
+	pop %eax
 	popa
 	add $8, %esp
 	iret
@@ -145,7 +152,6 @@ irq_common_stub:
 .global _set_idtr
 .type _set_idtr, @function
 _set_idtr:
-	xchgw %bx, %bx
 	mov 4(%esp), %eax
 	lidt (%eax)
 	sti

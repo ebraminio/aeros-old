@@ -92,7 +92,7 @@ void pmem_init(multiboot_info_t* mboot_info)
 		alloc_blocks(mboot_info->drives_addr, (mboot_info->drives_addr&~0xFFF)+mboot_info->drives_length);
 	if(mboot_info->flags & MULTIBOOT_INFO_BOOT_LOADER_NAME)
 		alloc_blocks(mboot_info->boot_loader_name, (mboot_info->boot_loader_name&~0xFFF)+BLOCK_SIZE);
-	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO);
+	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO);	//TODO
 }
 
 size_t p_find_free(void)

@@ -34,7 +34,7 @@ typedef struct __attribute__((packed))
 	uint8_t accessed : 1;
 	uint8_t reserved : 1;
 	uint8_t large_page : 1;
-	uint8_t global : 1;		// Ignored
+	uint8_t global : 1;			// Ignored
 	uint8_t available : 3;
 	uint32_t page_table : 20;	// 4KB aligned
 } page_dir_entry_t;
@@ -85,9 +85,9 @@ void vmem_init(void)
 	uintptr_t stack_end_page = ((uintptr_t)&_stack_top&~0xFFF)+PAGE_SIZE;
 	vmap(stack_start_page, stack_start_page, stack_end_page-stack_start_page);
 
-	asm("mov %0, %%cr3" : : "r"(page_dir));
-	asm("xchgw %bx, %bx;"
-		"mov %cr0, %eax;"
-		"or $0x80000000, %eax;"
-		"mov %eax, %cr0");
+	asm ("mov %0, %%cr3" : : "r" (page_dir));
+	asm ("xchgw %bx, %bx;"
+		 "mov %cr0, %eax;"
+		 "or $0x80000000, %eax;"
+		 "mov %eax, %cr0");
 }
