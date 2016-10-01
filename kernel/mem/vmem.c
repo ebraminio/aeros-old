@@ -1,6 +1,6 @@
 #include "mem/vmem.h"
 #include "mem/pmem.h"
-#include <stddef.h>
+#include <string.h>
 
 #define PAGE_SIZE 4096
 
@@ -59,6 +59,7 @@ void vmap(uintptr_t vstart, uintptr_t pstart, size_t size)
 		if(!page_dir->tables[dir_index].page_table)
 		{
 			uintptr_t alloc = (uintptr_t)palloc();
+			memset((void*)alloc, 0, PAGE_SIZE);
 			page_dir->tables[dir_index].page_table = alloc>>12;
 			vmap(alloc, alloc, PAGE_SIZE);
 		}
@@ -72,6 +73,13 @@ void vmap(uintptr_t vstart, uintptr_t pstart, size_t size)
 	}
 }
 
+void* kalloc(void)
+{
+	void* p = palloc();
+	vmap((uintptr_t)p, (uintptr_t)p, PAGE_SIZE);
+	return p;
+}
+
 extern const uint8_t _kernel_end;
 extern const uint8_t _stack_bottom;
 extern const uint8_t _stack_top;
@@ -79,6 +87,7 @@ extern const uint8_t _stack_top;
 void vmem_init(void)
 {
 	page_dir = (page_dir_t*)palloc();
+	memset(page_dir, 0, sizeof(*page_dir));
 	vmap((uintptr_t)page_dir, (uintptr_t)page_dir, PAGE_SIZE);
 	vmap(0, 0, (uintptr_t)&_kernel_end+PAGE_SIZE);
 	uintptr_t stack_start_page = (uintptr_t)&_stack_bottom&~0xFFF;

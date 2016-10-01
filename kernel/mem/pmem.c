@@ -68,8 +68,6 @@ void pmem_init(multiboot_info_t* mboot_info)
 {
 	memset(block_map, 0xFF, sizeof(block_map));
 
-	const uint32_t page_end = 0x100000 + mboot_info->mem_upper*1024;
-
 	multiboot_memory_map_t* mmap = (multiboot_memory_map_t*)mboot_info->mmap_addr;
 
 	while((uintptr_t)mmap < mboot_info->mmap_addr+mboot_info->mmap_length)
