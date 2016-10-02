@@ -16,11 +16,11 @@
 #include "devices/pit.h"
 #include "io/keyboard.h"
 #include "io/serial.h"
+#include "mem/pmem.h"
+#include "mem/vmem.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
-extern const uint8_t _kernel_base;
-extern const uint8_t _kernel_end;
 extern const uint8_t _stack_bottom;
 extern const uint8_t _stack_top;
 extern const uint8_t _initial_esp;
@@ -35,17 +35,35 @@ extern void _enter_usermode(void);
 __attribute__((noreturn))
 void kernel_main(unsigned long magic, unsigned long address)
 {
-	video_init();		// Initialize builtin VGA text mode driver
-
-	if(magic != MULTIBOOT_BOOTLOADER_MAGIC)
-		panic("Not loaded by Multiboot-compliant bootloader\n");
-
 	multiboot_info_t* mboot_info = (multiboot_info_t*) address;
 
 	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO && ((vbe_mode_t*)mboot_info->vbe_mode_info)->mode_attributes & VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE)
 		vbe_init((vbe_controller_t*)mboot_info->vbe_control_info, (vbe_mode_t*)mboot_info->vbe_mode_info);
+	else video_init();
 
+	if(magic != MULTIBOOT_BOOTLOADER_MAGIC)
+		panic("Not loaded by Multiboot-compliant bootloader\n");
+
+	if((mboot_info->flags & (MULTIBOOT_INFO_MEMORY|MULTIBOOT_INFO_MEM_MAP)) != (MULTIBOOT_INFO_MEMORY|MULTIBOOT_INFO_MEM_MAP))
+		panic("AerOS needs memory information from Multiboot");
+
+	serial_init(1);
+	nopanic("Serial");
+	gdt_init();
+	printf(" GDT");
+	idt_init();
+	printf(" IDT");
+	keyboard_init();
+	printf(" KB");
+	pit_init();
+	printf(" PIT");
 	acpi_init();
+	printf(" ACPI");
+	pmem_init(mboot_info);
+	printf(" PMEM");
+	vmem_init();
+	printf(" VMEM");
+	putchar('\n');
 
 	char id[13];
 	char brand[48];
@@ -77,27 +95,6 @@ void kernel_main(unsigned long magic, unsigned long address)
 	LOG_CPU_SUPPORT("avx2");
 	putchar('\n');
 
-	if(mboot_info->flags & MULTIBOOT_INFO_MEMORY)
-	{
-		printf("\t\tMem lower: ");	//in kibibytes (1024 bytes)
-		print_size(mboot_info->mem_lower*1024);
-		printf("\tMem upper: ");
-		print_size(mboot_info->mem_upper*1024);
-		putchar('\n');
-	}
-	if(mboot_info->flags & MULTIBOOT_INFO_MEM_MAP)
-	{
-		multiboot_memory_map_t* mmap = (multiboot_memory_map_t*)mboot_info->mmap_addr;
-		printf("\t\tMemory map(0x%p):", (void*)mboot_info->mmap_addr);
-		while((uint32_t)mmap < mboot_info->mmap_addr+mboot_info->mmap_length)
-		{
-			printf("\n\t\t\t-0x%08llx - 0x%08llx type 0x%x", mmap->addr, mmap->addr+mmap->len-1, mmap->type);
-			mmap = (multiboot_memory_map_t*)((uintptr_t)mmap+mmap->size+4);
-		}
-		putchar('\n');
-	}
-	else panic("Memory map not provided");
-
 	if(mboot_info->flags & MULTIBOOT_INFO_BOOTDEV)
 	{
 		printf("\t\tDevice: 0x%x\tDrive: %d", mboot_info->boot_device, mboot_info->boot_device >> 24);
@@ -105,7 +102,10 @@ void kernel_main(unsigned long magic, unsigned long address)
 	}
 
 	if(mboot_info->flags & MULTIBOOT_INFO_CMDLINE)
+	{
+		vmap(mboot_info->cmdline, mboot_info->cmdline, 4096);
 		printf("\t\tKernel command-line: %s\n", (char*)mboot_info->cmdline);
+	}
 	if(mboot_info->flags & MULTIBOOT_INFO_DRIVE_INFO)
 	{
 		multiboot_drive_t* drivelist = (multiboot_drive_t*)mboot_info->drives_addr;
@@ -146,14 +146,6 @@ void kernel_main(unsigned long magic, unsigned long address)
 		printf("\t\tVBE 2.0+ interface : Segment:0x%x\tOffset:0x%08x\tLength:0x%x\n",
 			mboot_info->vbe_interface_seg, mboot_info->vbe_interface_off, mboot_info->vbe_interface_len);
 	}
-
-	gdt_init();
-	nopanic("GDT");
-	pit_init();
-	idt_init();
-	printf(" IDT");
-	serial_init(1);
-	keyboard_init();
 
 	for(;;);
 }

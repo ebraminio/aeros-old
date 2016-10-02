@@ -3,7 +3,6 @@
 .global _set_gdtr
 .type _set_gdtr, @function
 _set_gdtr:
-	xchgw %bx, %bx
 	mov 4(%esp), %eax
 	lgdt (%eax)
 	mov $0x10, %ax

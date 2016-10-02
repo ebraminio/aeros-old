@@ -7,8 +7,8 @@
 #define STATUS_PORT	0x64
 #define CMD_PORT	0x64
 
-#define READ_BYTE(n) (0x20|n&0x1F)
-#define WRITE_BYTE(n) (0x60|n&0x1F)
+#define READ_BYTE(n) (0x20|(n&0x1F))
+#define WRITE_BYTE(n) (0x60|(n&0x1F))
 #define DISABLE_PORT2 0xA7
 #define ENABLE_PORT2 0xA8
 #define TEST_PORT2 0xA9

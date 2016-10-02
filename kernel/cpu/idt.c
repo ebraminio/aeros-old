@@ -209,9 +209,11 @@ void fault_handler(regs_t* r)
 		panic("%s Exception(%d) err code:0x%x. System Halted!\n"
 			  "EAX:0x%08x\tEBX:0x%08x\tECX:0x%08x\tEDX:0x%08x\n"
 			  "ESI:0x%08x\tEDI:0x%08x\tEIP:0x%08x\tESP:0x%08x\tEBP:0x%08x\n"
-			  "CS:0x%04x\tDS:0x%04x\tSS:0x%04x",
+			  "CS:0x%04x\tDS:0x%04x\tSS:0x%04x\n"
+			  "CR0:0x%08x\tCR2:0x%08x\tCR3:0x%08x\tCR4:0x%08x",
 			exception_messages[r->int_no], r->int_no, r->err_code,
 			r->eax, r->ebx, r->ecx, r->edx,
 			r->esi, r->edi, r->eip, r->esp, r->ebp,
-			r->cs&0xFFFF, r->ds&0xFFFF, r->ss&0xFFFF);
+			r->cs&0xFFFF, r->ds&0xFFFF, r->ss&0xFFFF,
+			r->cr0, r->cr2, r->cr3, r->cr4);
 }
