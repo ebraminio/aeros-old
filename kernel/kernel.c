@@ -18,6 +18,7 @@
 #include "io/serial.h"
 #include "mem/pmem.h"
 #include "mem/vmem.h"
+#include "devices/pci.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
@@ -63,6 +64,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 	printf(" PMEM");
 	vmem_init();
 	printf(" VMEM");
+	pci_init();
+	printf(" PCI");
 	putchar('\n');
 
 	char id[13];
