@@ -2,11 +2,8 @@ language: c
 
 addons:
   apt:
-    sources:
-      - debian-sid
     packages:
       - autoconf2.64
-      - automake1.11
       - texinfo
       - wget
       - lintian
@@ -14,7 +11,7 @@ addons:
 
 script:
   - make -C toolchain binutils-install-deb
-  - make -C tooolchain gcc-install-deb
+  - make -C toolchain gcc-install-deb
 
 after_failure:
   - cat toolchain/build-binutils/config.log
