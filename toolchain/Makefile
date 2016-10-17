@@ -1,6 +1,7 @@
--include ../config.mk
+TARGET = $(shell grep ^TARGET ../config.mk|cut -d' ' -f3)
 
 SYSROOT = $(shell cd ../sysroot && pwd)
+PREFIX = /usr
 
 BINUTILS := $(shell command -v $(TARGET)-as 2> /dev/null)
 
@@ -11,13 +12,39 @@ ISL_VERSION = 0.16.1
 BINUTILS_PACKAGE = $(TARGET)-binutils-$(BINUTILS_VERSION)-$(PACKAGE_VERSION)
 GCC_PACKAGE = $(TARGET)-gcc-$(GCC_VERSION)-$(PACKAGE_VERSION)
 
-PACKAGE_VERSION= 0.1-$(shell date +'%Y%m%d')
+PACKAGE_VERSION = 0.1-$(shell date +'%Y%m%d')
 
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
 .SUFFIXES:
 
+AUTOMAKE = automake-1.11
+ifeq ("$(shell which $(AUTOMAKE))", "")
+  AUTOMAKE = $(PWD)/prefix/bin/automake-1.11
+else
+  ifneq ($(shell $(AUTOMAKE) --version|head -n1|cut -d'.' -f3), 6)
+    AUTOMAKE = $(PWD)/prefix/bin/automake-1.11
+  endif
+endif
+
 all:
+
+automake_present:
+ifneq ($(NO_AUTOMAKE),1)
+  ifneq ($(shell $(AUTOMAKE) --version|head -n1|cut -d'.' -f3), 6)
+	wget -nv -c ftp://ftp.gnu.org/gnu/automake/automake-1.11.6.tar.gz
+	tar xzf automake-1.11.6.tar.gz
+	mkdir -p build-automake
+	cd build-automake && ../automake-1.11.6/configure --prefix="$(PWD)/prefix"
+	cd build-automake && make && make install
+	touch automake_present
+  else
+	@echo Valid automake version found
+	touch automake_present
+  endif
+else
+	@echo Building without automake
+endif
 
 binutils-%.tar.gz:
 	wget -nv -c ftp://ftp.gnu.org/gnu/binutils/$@
@@ -31,15 +58,26 @@ binutils-%/configure: binutils-%.tar.gz
 gcc-%/configure: gcc-%.tar.gz
 	tar xzf $<
 
-build-binutils/Makefile: binutils-$(BINUTILS_VERSION)/configure patches/binutils-$(BINUTILS_VERSION).patch
+build-binutils/Makefile: automake_present binutils-$(BINUTILS_VERSION)/configure patches/binutils-$(BINUTILS_VERSION).patch
 ifeq ($(NO_AUTOMAKE),1)
 		patch -p0 -N -r- < patches/binutils-$(BINUTILS_VERSION)-automake.patch
 else
 		patch -p0 -N -r- < patches/binutils-$(BINUTILS_VERSION).patch
-		cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 automake-1.11
+		cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 $(AUTOMAKE)
 endif
 	mkdir -p build-binutils
-	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=/usr --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --disable-nls --disable-werror
+	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=$(PREFIX) --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --disable-nls --disable-werror
+
+binutils-unpatch: patches/binutils-$(BINUTILS_VERSION).patch
+ifeq ($(NO_AUTOMAKE),1)
+		patch -p0 -N -r- -R < patches/binutils-$(BINUTILS_VERSION)-automake.patch
+else
+		patch -p0 -N -r- -R < patches/binutils-$(BINUTILS_VERSION).patch
+endif
+
+binutils-install: build-binutils/Makefile
+	cd build-binutils && make
+	cd build-binutils && make install
 
 binutils-deb: dist/$(BINUTILS_PACKAGE).deb
 
@@ -57,8 +95,8 @@ dist/$(BINUTILS_PACKAGE).deb: build-binutils/Makefile
 binutils-install-deb: dist/$(BINUTILS_PACKAGE).deb
 	dpkg -i $<
 
-build-gcc/Makefile: gcc-$(GCC_VERSION)/configure $(SYSROOT)/usr/include/ patches/gcc-$(GCC_VERSION).patch
-ifndef BINUTILS
+build-gcc/Makefile: automake_present gcc-$(GCC_VERSION)/configure $(SYSROOT)/usr/include/ patches/gcc-$(GCC_VERSION).patch
+ifeq ("$(shell which $(TARGET)-as)", "")
 	$(MAKE) binutils-install
 endif
 ifeq ($(NO_AUTOMAKE),1)
@@ -69,7 +107,7 @@ else
 endif
 	cd gcc-$(GCC_VERSION) && ./contrib/download_prerequisites
 	mkdir -p build-gcc
-	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix=/usr --enable-languages=c --disable-nls --disable-werror --with-isl
+	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix=$(PREFIX) --enable-languages=c --disable-nls --disable-werror --with-isl
 
 gcc-install: build-gcc/Makefile
 	cd build-gcc && make all-gcc
