@@ -15,7 +15,6 @@ PACKAGE_VERSION = 0.1-$(shell date +'%Y%m%d')
 
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
-.PHONY: automake
 .SUFFIXES:
 
 AUTOMAKE = automake-1.11
@@ -29,7 +28,7 @@ endif
 
 all:
 
-automake:
+automake_present:
 ifneq ($(NO_AUTOMAKE),1)
   ifneq ($(shell $(AUTOMAKE) --version|head -n1|cut -d'.' -f3), 6)
 	wget -nv -c ftp://ftp.gnu.org/gnu/automake/automake-1.11.6.tar.gz
@@ -37,8 +36,10 @@ ifneq ($(NO_AUTOMAKE),1)
 	mkdir -p build-automake
 	cd build-automake && ../automake-1.11.6/configure --prefix="$(PWD)/prefix"
 	cd build-automake && make && make install
+	touch automake_present
   else
 	@echo Valid automake version found
+	touch automake_present
   endif
 else
 	@echo Building without automake
@@ -56,7 +57,7 @@ binutils-%/configure: binutils-%.tar.gz
 gcc-%/configure: gcc-%.tar.gz
 	tar xzf $<
 
-build-binutils/Makefile: automake binutils-$(BINUTILS_VERSION)/configure patches/binutils-$(BINUTILS_VERSION).patch
+build-binutils/Makefile: automake_present binutils-$(BINUTILS_VERSION)/configure patches/binutils-$(BINUTILS_VERSION).patch
 ifeq ($(NO_AUTOMAKE),1)
 		patch -p0 -N -r- < patches/binutils-$(BINUTILS_VERSION)-automake.patch
 else
@@ -82,7 +83,7 @@ dist/$(BINUTILS_PACKAGE).deb: build-binutils/Makefile
 binutils-install-deb: dist/$(BINUTILS_PACKAGE).deb
 	dpkg -i $<
 
-build-gcc/Makefile: automake gcc-$(GCC_VERSION)/configure $(SYSROOT)/usr/include/ patches/gcc-$(GCC_VERSION).patch
+build-gcc/Makefile: automake_present gcc-$(GCC_VERSION)/configure $(SYSROOT)/usr/include/ patches/gcc-$(GCC_VERSION).patch
 ifndef BINUTILS
 	$(MAKE) binutils-install
 endif
