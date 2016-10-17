@@ -68,6 +68,13 @@ endif
 	mkdir -p build-binutils
 	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=$(PREFIX) --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --disable-nls --disable-werror
 
+binutils-unpatch: patches/binutils-$(BINUTILS_VERSION).patch
+ifeq ($(NO_AUTOMAKE),1)
+		patch -p0 -N -r- -R < patches/binutils-$(BINUTILS_VERSION)-automake.patch
+else
+		patch -p0 -N -r- -R < patches/binutils-$(BINUTILS_VERSION).patch
+endif
+
 binutils-install: build-binutils/Makefile
 	cd build-binutils && make
 	cd build-binutils && make install
@@ -89,7 +96,7 @@ binutils-install-deb: dist/$(BINUTILS_PACKAGE).deb
 	dpkg -i $<
 
 build-gcc/Makefile: automake_present gcc-$(GCC_VERSION)/configure $(SYSROOT)/usr/include/ patches/gcc-$(GCC_VERSION).patch
-ifndef BINUTILS
+ifeq ("$(shell which $(TARGET)-as)", "")
 	$(MAKE) binutils-install
 endif
 ifeq ($(NO_AUTOMAKE),1)

@@ -13,6 +13,7 @@ script:
   - export PATH="$PATH:$HOME/prefix/bin"
   - make -C toolchain binutils-deb
   - rm -rf toolchain/build-binutils
+  - make -C toolchain binutils-unpatch
   - make -s -C toolchain binutils-install PREFIX="$HOME/prefix"
   - make -C toolchain gcc-deb
 
