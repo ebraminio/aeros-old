@@ -1,4 +1,4 @@
--include ../config.mk
+TARGET = $(shell grep ^TARGET ../config.mk|cut -d' ' -f3)
 
 SYSROOT = $(shell cd ../sysroot && pwd)
 
@@ -11,7 +11,7 @@ ISL_VERSION = 0.16.1
 BINUTILS_PACKAGE = $(TARGET)-binutils-$(BINUTILS_VERSION)-$(PACKAGE_VERSION)
 GCC_PACKAGE = $(TARGET)-gcc-$(GCC_VERSION)-$(PACKAGE_VERSION)
 
-PACKAGE_VERSION= 0.1-$(shell date +'%Y%m%d')
+PACKAGE_VERSION = 0.1-$(shell date +'%Y%m%d')
 
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
