@@ -14,7 +14,7 @@ script:
   - make -C toolchain binutils-deb
   - rm -rf toolchain/build-binutils
   - make -C toolchain binutils-unpatch
-  - make -s -C toolchain binutils-install PREFIX="$HOME/prefix"
+  - make -C toolchain binutils-install PREFIX="$HOME/prefix"
   - make -C toolchain gcc-deb
 
 after_failure:
@@ -29,4 +29,4 @@ deploy:
   skip_cleanup: true
   on:
     repo: aerath/aeros
-    branch: release
+    branch: develop
