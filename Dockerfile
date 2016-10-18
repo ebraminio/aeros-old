@@ -1,17 +1,24 @@
-FROM aerath/osdev
+FROM debian
 MAINTAINER Aerath Aiskurimu
 
 WORKDIR home
 ADD . .
 WORKDIR toolchain
-RUN wget -c ftp://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.gz ftp://ftp.gnu.org/gnu/gcc/gcc-6.1.0/gcc-6.1.0.tar.gz \
+RUN apt-get update \
+&& apt-get -y install --no-install-recommends patch tar bzip2 wget \
+	automake1.11 autoconf2.64 make libc6-dev gcc g++ texinfo libmpfr-dev \
+	libgmp3-dev libisl-dev libcloog-isl-dev libmpc-dev fakeroot lintian \
+&& wget -c ftp://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.gz \
+	ftp://ftp.gnu.org/gnu/gcc/gcc-6.1.0/gcc-6.1.0.tar.gz \
 && (make binutils-deb \
 	|| (err=$?; cat build-binutils/config.log; return $err)) \
 && make binutils-install-deb \
 && (make gcc-deb \
 	|| (err=$?; cat build-gcc/config.log; return $err)) \
 && make gcc-install-deb \
-&& apt-get -y remove --purge patch bzip2 automake1.11 autoconf2.64 wget gcc texinfo libmpfr-dev libgmp3-dev libisl-dev libcloog-isl-dev libmpc-dev \
+&& apt-get -y remove --purge patch bzip2 wget automake1.11 autoconf2.64 \
+	libc6-dev gcc g++ texinfo libmpfr-dev libgmp3-dev libisl-dev \
+	libcloog-isl-dev libmpc-dev fakeroot lintian \
 && apt-get -y autoremove \
 && apt-get -y autoclean \
 && rm -rf /var/cache/debconf/*-old \
