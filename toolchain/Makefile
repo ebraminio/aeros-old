@@ -107,7 +107,7 @@ else
 endif
 	cd gcc-$(GCC_VERSION) && ./contrib/download_prerequisites
 	mkdir -p build-gcc
-	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix=$(PREFIX) --enable-languages=c --disable-nls --disable-werror --with-isl
+	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix=$(PREFIX) --enable-languages=c,c++ --disable-nls --disable-werror --with-isl
 
 gcc-install: build-gcc/Makefile
 	cd build-gcc && make all-gcc

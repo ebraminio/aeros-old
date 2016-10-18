@@ -1,12 +1,13 @@
 SYSROOT = $(shell realpath ../sysroot)
 
 C_FILES = $(shell find -name modules -prune -o -type f -name '*.c' -print)
+CC_FILES = $(shell find -name modules -prune -o -type f -name '*.cc' -print)
 S_FILES = $(shell find -name modules -prune -o -type f -name '*.S' -print)
-OBJECTS = $(C_FILES:.c=.o) $(S_FILES:.S=.o)
+OBJECTS = $(C_FILES:.c=.o) $(CC_FILES:.cc=.o) $(S_FILES:.S=.o)
 
 -include ../config.mk
 
-CFLAGS += -I$(SYSROOT)/usr/include -I$(shell pwd)/include -ffreestanding -fbuiltin
+CPPFLAGS += -I$(SYSROOT)/usr/include -I$(shell pwd)/include -ffreestanding -fbuiltin
 LDFLAGS += -nostdlib -L$(KERNEL_DIR)/ -lgcc
 
 all: aeros-i686.kernel
@@ -19,7 +20,7 @@ kernel.o: CFLAGS += -DMULTIBOOT1
 boot.o: ASFLAGS += -DMULTIBOOT1
 
 aeros-i686.kernel: $(OBJECTS) linker.ld
-	$(CC) -o $@ $(OBJECTS) $(LDFLAGS) -Wl,-d -T linker.ld -ffreestanding -fbuiltin
+	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS) -Wl,-d -T linker.ld -ffreestanding -fbuiltin
 
 install: all
 	@mkdir -p $(SYSROOT)/boot/
