@@ -2,7 +2,7 @@ include config.mk
 
 .PHONY: kernel hdd qemu
 
-SYSROOT = $(shell pwd)/sysroot
+SYSROOT = $(CURDIR)/sysroot
 QEMUFLAGS = -vga std -serial mon:stdio -net dump,file=netdump.pcap -net nic,model=e1000 -net user,hostfwd=tcp::5555-:5555 -s -S
 
 .DELETE_ON_ERROR: hdd.img
@@ -11,7 +11,7 @@ qemu: hdd.img $(SYSROOT)/boot/aeros-i686.kernel
 	qemu-system-i386 $(QEMUFLAGS) -hda hdd.img -kernel kernel/aeros-i686.kernel
 
 uncrustify: uncrustify.cfg
-	find kernel sysroot/usr/include -type f -name '*.c' -o -name '*.h' ! -name 'multiboot.h' ! -name 'multiboot2.h' ! -name 'elf.h' | $@ -c $< -F - --replace --no-backup
+	find kernel sysroot/usr/include -type f -name '*.c' -o -name '*.h'  -o -name '*.cc' -o -name '*.hpp' ! -name 'multiboot.h' ! -name 'multiboot2.h' ! -name 'elf.h' | $@ -c $< -F - --replace --no-backup
 	sed -i 's/) ;/);/g' $$(grep ' ;' -rl kernel)
 
 hdd: hdd.img sysroot/

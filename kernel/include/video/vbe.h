@@ -25,7 +25,7 @@
 
 #define VBE_MAX_MEM_MODEL 8
 
-const char* vbe_memory_models[VBE_MAX_MEM_MODEL];
+extern const char* vbe_memory_models[VBE_MAX_MEM_MODEL];
 
 typedef struct vbe_controlle
 {

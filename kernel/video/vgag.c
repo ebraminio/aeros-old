@@ -20,7 +20,7 @@ static void vgag_putchar(uint32_t x, uint32_t y, int c, uint32_t color);
 static void vgag_scroll(uint32_t n);
 static void vgag_clear(uint32_t color);
 
-video_device_t* vgag_init( vbe_controller_t* controller, vbe_mode_t* mode)
+video_device_t* vgag_init(vbe_controller_t* controller, vbe_mode_t* mode)
 {
 	if(mode->mode_attributes & VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE)
 		video_device->buffer = (void*)mode->frame_buffer;

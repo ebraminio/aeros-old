@@ -1,7 +1,3 @@
-/**
- *  \file
- */
-
 #ifndef _STDIO_H
 #define _STDIO_H
 
@@ -48,13 +44,13 @@ extern FILE* stderr;
 #define SEEK_END 2
 #define EOF ((int)-1)
 
-int printf(const char* format, ...) __attribute__((format (printf, 1, 2)));
-int vprintf(const char* format, va_list ap) __attribute__((format (printf, 1, 0)));
-int fprintf(FILE* stream, const char* format, ...) __attribute__((format (printf, 2, 3)));
-int vfprintf(FILE* stream, const char* format, va_list ap) __attribute__((format (printf, 2, 0)));
-int sprintf(char* s, const char* format, ...) __attribute__((format (printf, 2, 3)));
-int vsprintf(char* restrict s, const char* restrict format, va_list ap) __attribute__((format (printf, 2, 0)));
-int puts(const char* );
+int printf(const char* format, ...) __attribute__((format(printf, 1, 2)));
+int vprintf(const char* format, va_list ap) __attribute__((format(printf, 1, 0)));
+int fprintf(FILE* stream, const char* format, ...) __attribute__((format(printf, 2, 3)));
+int vfprintf(FILE* stream, const char* format, va_list ap) __attribute__((format(printf, 2, 0)));
+int sprintf(char* s, const char* format, ...) __attribute__((format(printf, 2, 3)));
+int vsprintf(char* restrict s, const char* restrict format, va_list ap) __attribute__((format(printf, 2, 0)));
+int puts(const char*);
 int putc(int c, FILE* stream);
 int fputc(int c, FILE* stream);
 int fputs(const char* s, FILE* stream);
@@ -64,7 +60,7 @@ int getchar(void);
 int fgetc(FILE* stream);
 int getc(FILE* stream);
 int ungetc(int c, FILE* stream);
-int fscanf(FILE *restrict stream, const char *restrict format, ...) __attribute__((format (scanf, 2, 3)));
+int fscanf(FILE *restrict stream, const char *restrict format, ...) __attribute__((format(scanf, 2, 3)));
 
 int fflush(FILE* stream);
 
