@@ -1,8 +1,10 @@
-#include "io/serial.h"
-#include "devices/pic.h"
+#include "io/serial.hpp"
 #include <sys/io.h>
 #include "cpu/bda.h"
-#include <stdio.h>
+#include <cstdio>
+extern "C" {
+#include "devices/pic.h"
+}
 
 #define DATA_REG			0
 #define DIV_LATCH_LO_REG	0
@@ -85,16 +87,16 @@ void serial_handler(regs_t* r)
 	if(r->int_no == 32+4)
 	{
 		if(GET_INT_TYPE(inb(COM[1-1] + INT_IDENTIF_REG)) == DATA_AVAILABLE_INT)
-			read_serial_nowait(1);
+			Serial(1).read_nowait();
 		if(GET_INT_TYPE(inb(COM[1-1] + INT_IDENTIF_REG)) == DATA_AVAILABLE_INT)
-			read_serial_nowait(3);
+			Serial(3).read_nowait();
 	}
 	else
 	{
 		if(GET_INT_TYPE(inb(COM[2-1] + INT_IDENTIF_REG)) == DATA_AVAILABLE_INT)
-			read_serial_nowait(2);
+			Serial(2).read_nowait();
 		if(GET_INT_TYPE(inb(COM[4-1] + INT_IDENTIF_REG)) == DATA_AVAILABLE_INT)
-			read_serial_nowait(4);
+			Serial(4).read_nowait();
 	}
 }
 
@@ -103,49 +105,54 @@ uint8_t serial_received(uint8_t com)
 	return inb(COM[com-1] + LINE_STATUS_REG) & DATA_READY;
 }
 
-uint8_t read_serial_nowait(uint8_t com)
-{
-	return inb(COM[com-1] + DATA_REG);
-}
+Serial::Serial(uint8_t num) : _num(num), _iobase(((uint16_t*)&bda->com1)[num-1])
+{}
 
-uint8_t read_serial(uint8_t com)
-{
-	while(!serial_received(com));
-	return inb(COM[com-1] + DATA_REG);
-}
-
-void write_serial(uint8_t com, char c)
-{
-	while(inb(COM[com-1]+LINE_STATUS_REG) & DATA_READY);
-	outb(COM[com-1]+DATA_REG, c);
-}
-
-void put_serial(uint8_t com, char* s)
-{
-	char* p = s;
-	while(*p != '\0')
-		write_serial(com, *(p++));
-}
-
-void serial_init(uint8_t com)
+void Serial::open(void)
 {
 	const uint16_t baud_rate_divisor = 0x3;
-	*(uint64_t*)COM = *(uint64_t*)&bda->com1;
 
-	outb(COM[com-1] + INT_ENABLE_REG, INT_EN_DATA_AVAILABLE|INT_EN_OUT_HOLDING_REG_EMPTY|INT_EN_MODEM_STATUS_CHANGE);
-	outb(COM[com-1] + LINE_CTRL_REG, ENABLE_DLAB);
-	outb(COM[com-1] + DIV_LATCH_LO_REG, baud_rate_divisor&0xFF);
-	outb(COM[com-1] + DIV_LATCH_HI_REG, baud_rate_divisor>>8);
-	outb(COM[com-1] + LINE_CTRL_REG, SET_WORD_LENGTH(8));
-	outb(COM[com-1] + FIFO_CONTROL_REG, SET_INT_TRIG_LVL(14)|CLEAR_OUT_FIFO|CLEAR_IN_FIFO|ENABLE_FIFO);
-	outb(COM[com-1] + MODEM_CTRL_REG, DATA_TERMINAL_READY|REQUEST_TO_SEND|AUX_OUT2);
+	outb(_iobase + INT_ENABLE_REG, INT_EN_DATA_AVAILABLE|INT_EN_OUT_HOLDING_REG_EMPTY|INT_EN_MODEM_STATUS_CHANGE);
+	outb(_iobase + LINE_CTRL_REG, ENABLE_DLAB);
+	outb(_iobase + DIV_LATCH_LO_REG, baud_rate_divisor&0xFF);
+	outb(_iobase + DIV_LATCH_HI_REG, baud_rate_divisor>>8);
+	outb(_iobase + LINE_CTRL_REG, SET_WORD_LENGTH(8));
+	outb(_iobase + FIFO_CONTROL_REG, SET_INT_TRIG_LVL(14)|CLEAR_OUT_FIFO|CLEAR_IN_FIFO|ENABLE_FIFO);
+	outb(_iobase + MODEM_CTRL_REG, DATA_TERMINAL_READY|REQUEST_TO_SEND|AUX_OUT2);
 
-	put_serial(com, "COM");
-	write_serial(com, '0'+com);
-	put_serial(com, " open\n");
+	this->put("COM");
+	this->write('0'+_num);
+	this->put(" open\n");
 
 	irq_install_handler(3, serial_handler);
 	irq_install_handler(4, serial_handler);
 	unmask_irq(3);
 	unmask_irq(4);
+}
+
+void Serial::close(void)
+{}
+
+void Serial::put(char const* s)
+{
+	char* p = (char*)s;
+	while(*p != '\0')
+		this->write(*(p++));
+}
+
+uint8_t Serial::read(void)
+{
+	while(!serial_received(_num));
+	return inb(_iobase + DATA_REG);
+}
+
+uint8_t Serial::read_nowait(void) const
+{
+	return inb(_iobase + DATA_REG);
+}
+
+void Serial::write(uint8_t c)
+{
+	while(inb(_iobase+LINE_STATUS_REG) & DATA_READY);
+	outb(_iobase+DATA_REG, c);
 }

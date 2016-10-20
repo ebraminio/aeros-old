@@ -1,38 +1,32 @@
-/**
- *  \file
- */
-
-#include <stdint.h>
-#include <stdio.h>
-#include "multiboot.h"
-#include "multiboot_compl.h"
+#include <cstdint>
+#include <cstdio>
+#include <cpuid.h>
+extern "C"
+{
 #include "video/video.h"
 #include "video/vbe.h"
 #include "io/log.h"
-#include <cpuid.h>
-#include "cpu/acpi.h"
 #include "cpu/gdt.h"
 #include "cpu/idt.h"
-#include "devices/pit.h"
 #include "io/keyboard.h"
-#include "io/serial.h"
+#include "devices/pit.h"
+#include "cpu/acpi.h"
 #include "mem/pmem.h"
 #include "mem/vmem.h"
-#include "devices/pci.h"
+}
+#include "multiboot.h"
+#include "multiboot_compl.h"
+#include "io/serial.hpp"
+#include "devices/pci.hpp"
 
-#define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
+#define LOG_CPU_SUPPORT(X) if(__builtin_cpu_supports(#X)) printf(" "#X);
 
 extern const uint8_t _stack_bottom;
 extern const uint8_t _stack_top;
 extern const uint8_t _initial_esp;
 extern void _enter_usermode(void);
 
-/**
- *  \param magic Multiboot 1 or 2 magic number
- *  \param address Address of a multiboot_info_t structure
- *  \return Does not return
- *  \see multiboot.h multiboot2.h
- */
+extern "C" void kernel_main(unsigned long magic, unsigned long address);
 __attribute__((noreturn))
 void kernel_main(unsigned long magic, unsigned long address)
 {
@@ -48,7 +42,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 	if((mboot_info->flags & (MULTIBOOT_INFO_MEMORY|MULTIBOOT_INFO_MEM_MAP)) != (MULTIBOOT_INFO_MEMORY|MULTIBOOT_INFO_MEM_MAP))
 		panic("AerOS needs memory information from Multiboot");
 
-	serial_init(1);
+	Serial com1(1);
+	com1.open();
 	nopanic("Serial");
 	gdt_init();
 	printf(" GDT");
@@ -85,17 +80,17 @@ void kernel_main(unsigned long magic, unsigned long address)
 	printf("CPU : %s - %s\nSupported features:", id, brand);
 
 	__builtin_cpu_init();
-	LOG_CPU_SUPPORT("cmov");
-	LOG_CPU_SUPPORT("mmx");
-	LOG_CPU_SUPPORT("popcnt");
-	LOG_CPU_SUPPORT("sse");
-	LOG_CPU_SUPPORT("sse2");
-	LOG_CPU_SUPPORT("sse3");
-	LOG_CPU_SUPPORT("ssse3");
-	LOG_CPU_SUPPORT("sse4.1");
-	LOG_CPU_SUPPORT("sse4.2");
-	LOG_CPU_SUPPORT("avx");
-	LOG_CPU_SUPPORT("avx2");
+	LOG_CPU_SUPPORT(cmov);
+	LOG_CPU_SUPPORT(mmx);
+	LOG_CPU_SUPPORT(popcnt);
+	LOG_CPU_SUPPORT(sse);
+	LOG_CPU_SUPPORT(sse2);
+	LOG_CPU_SUPPORT(sse3);
+	LOG_CPU_SUPPORT(ssse3);
+	LOG_CPU_SUPPORT(sse4.1);
+	LOG_CPU_SUPPORT(sse4.2);
+	LOG_CPU_SUPPORT(avx);
+	LOG_CPU_SUPPORT(avx2);
 	putchar('\n');
 
 	if(mboot_info->flags & MULTIBOOT_INFO_BOOTDEV)

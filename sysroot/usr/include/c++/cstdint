@@ -1,0 +1,7 @@
+#ifndef __CPP_CSTDINT__
+#define __CPP_CSTDINT__
+
+#include <bits/c++config.h>
+#include <stdint.h>
+
+#endif

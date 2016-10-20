@@ -1,0 +1,9 @@
+#ifndef __CPP_CSTDIO__
+#define __CPP_CSTDIO__
+
+#include <bits/c++config.h>
+extern "C" {
+	#include <stdio.h>
+}
+
+#endif
