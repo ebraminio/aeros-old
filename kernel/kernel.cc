@@ -3,8 +3,6 @@
 #include <cpuid.h>
 extern "C"
 {
-#include "video/video.h"
-#include "video/vbe.h"
 #include "io/log.h"
 #include "cpu/gdt.h"
 #include "cpu/idt.h"
@@ -16,6 +14,8 @@ extern "C"
 }
 #include "multiboot.h"
 #include "multiboot_compl.h"
+#include "video/video.hpp"
+#include "video/vbe.hpp"
 #include "io/serial.hpp"
 #include "devices/pci.hpp"
 
@@ -26,13 +26,13 @@ extern const uint8_t _stack_top;
 extern const uint8_t _initial_esp;
 extern void _enter_usermode(void);
 
-extern "C" void kernel_main(unsigned long magic, unsigned long address);
+extern "C" void kernel_main(unsigned long, unsigned long);
 __attribute__((noreturn))
 void kernel_main(unsigned long magic, unsigned long address)
 {
 	multiboot_info_t* mboot_info = (multiboot_info_t*) address;
 
-	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO && ((vbe_mode_t*)mboot_info->vbe_mode_info)->mode_attributes & VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE)
+	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO && ((vbe_mode_t*)mboot_info->vbe_mode_info)->mode_attributes & VBE_MODE_ATTR_LFB_MODE_AVAILABLE)
 		vbe_init((vbe_controller_t*)mboot_info->vbe_control_info, (vbe_mode_t*)mboot_info->vbe_mode_info);
 	else video_init();
 
@@ -121,22 +121,22 @@ void kernel_main(unsigned long magic, unsigned long address)
 		vbe_controller_t* vbe_cinfo = (vbe_controller_t*)mboot_info->vbe_control_info;
 		vbe_mode_t* vbe_minfo = (vbe_mode_t*)mboot_info->vbe_mode_info;
 
-		if(vbe_minfo->mode_attributes & VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE)
+		if(vbe_minfo->mode_attributes & VBE_MODE_ATTR_LFB_MODE_AVAILABLE)
 			printf("\t\tLinear frame buffer mode available : 0x%p", (void*)vbe_minfo->frame_buffer);
 
 		printf("\n\t\tVBE version %d.%d mode:0x%x.", vbe_cinfo->major_version, vbe_cinfo->minor_version, mboot_info->vbe_mode);
 		if(vbe_cinfo->major_version > 1 || (vbe_cinfo->major_version==1 && vbe_cinfo->minor_version>2))	// 1.2 and above
 		{
-			printf("\b (%dx%dx%d). char cell is %dx%d.", vbe_minfo->x_resolution, vbe_minfo->y_resolution,
-				vbe_minfo->bits_per_pixel, vbe_minfo->char_cell_width, vbe_minfo->char_cell_heigth);
+			printf("\b (%dx%dx%d). char cell is %dx%d.", vbe_minfo->x_res, vbe_minfo->y_res,
+				vbe_minfo->bits_per_pixel, vbe_minfo->char_cell_w, vbe_minfo->char_cell_h);
 			printf(" Memory model type %s.", vbe_memory_models[vbe_minfo->memory_model_type]);
 		}
-		if(vbe_minfo->mode_attributes & VBE_MODE_ATTRIB_TTY_SUPPORTED)
+		if(vbe_minfo->mode_attributes & VBE_MODE_ATTR_TTY_SUPPORTED)
 			printf(" TTY supported.");
-		if(vbe_minfo->mode_attributes & VBE_MODE_ATTRIB_COLOR_MODE)
+		if(vbe_minfo->mode_attributes & VBE_MODE_ATTR_COLOR_MODE)
 			printf(" Color");
 		else printf(" Monochrome");
-		if(vbe_minfo->mode_attributes & VBE_MODE_ATTRIB_GRAPHIC_MODE)
+		if(vbe_minfo->mode_attributes & VBE_MODE_ATTR_GRAPHIC_MODE)
 			puts(" graphic mode.");
 		else puts(" text mode.");
 

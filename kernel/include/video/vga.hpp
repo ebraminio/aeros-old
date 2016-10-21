@@ -1,10 +1,5 @@
-#ifndef __VIDEO_VGA_H__
-#define __VIDEO_VGA_H__
-
-#include "video/device.h"
-#include "video/vbe.h"
-
-#define TAB_SIZE 4
+#ifndef __VIDEO_VGA_HPP__
+#define __VIDEO_VGA_HPP__
 
 enum vga_color
 {
@@ -27,8 +22,5 @@ enum vga_color
 };
 
 #define VGA_DEFAULT_FB ((void*)0xB8000)
-
-video_device_t* vgat_init(void *text_buffer, uint16_t width, uint16_t height);
-video_device_t* vgag_init(vbe_controller_t* controller, vbe_mode_t* mode);
 
 #endif

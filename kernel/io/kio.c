@@ -2,6 +2,14 @@
 
 static const char* digits = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz";
 
+int puts(const char* s)
+{
+	char* ptr = (char*)s;
+	while(*ptr)
+		putchar(*(ptr++));
+	return ptr-s;
+}
+
 int printf(const char* format, ...)
 {
 	va_list argp;

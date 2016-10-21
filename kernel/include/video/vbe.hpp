@@ -1,31 +1,30 @@
-#ifndef __VIDEO_VBE_H__
-#define __VIDEO_VBE_H__
+#ifndef __VIDEO_VBE_HPP__
+#define __VIDEO_VBE_HPP__
 
-#include <stdint.h>
-#include "video/device.h"
+#include <cstdint>
 
 // Fixed DAC width = 6bits. Switchable to 8bits. Resetted upon mode set.
 #define VBE_CAPA_DAC_WITDH_SWICHABLE	(1<<0)
 // Controller is VGA compatible
-#define VBE_CAPA_VGE_COMP	(1<<1)
+#define VBE_CAPA_VGE_COMP				(1<<1)
 
 // Mode supported by hardware
-#define VBE_MODE_ATTRIB_MODE_SUPPORTED	(1<<0)
+#define VBE_MODE_ATTR_MODE_SUPPORTED	(1<<0)
 // TTY Output functions supported by BIOS (set cursor size, position, scroll up
 // and down, write char and attrib at position, write char only at position,
 // write char and advance cursor)
-#define VBE_MODE_ATTRIB_TTY_SUPPORTED	(1<<2)
-#define VBE_MODE_ATTRIB_COLOR_MODE		(1<<3)
-#define VBE_MODE_ATTRIB_GRAPHIC_MODE	(1<<4)
+#define VBE_MODE_ATTR_TTY_SUPPORTED		(1<<2)
+#define VBE_MODE_ATTR_COLOR_MODE		(1<<3)
+#define VBE_MODE_ATTR_GRAPHIC_MODE		(1<<4)
 // Incompatible with VGA hardware registers
-#define VBE_MODE_ATTRIB_NOT_VGA_COMP	(1<<5)
+#define VBE_MODE_ATTR_VGA_INCOMP		(1<<5)
 // FIXME Shorten next fields...
-#define VBE_MODE_ATTRIB_VGA_COMP_WINDWD_MEM_MODE_AVAILABLE	(1<<6)
-#define VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE	(1<<7)
+#define VBE_MODE_ATTR_VGA_COMP_WINDWD_MEM_MODE_AVAILABLE	(1<<6)
+#define VBE_MODE_ATTR_LFB_MODE_AVAILABLE	(1<<7)
 
 #define VBE_MAX_MEM_MODEL 8
 
-extern const char* vbe_memory_models[VBE_MAX_MEM_MODEL];
+extern const char* const vbe_memory_models[VBE_MAX_MEM_MODEL];
 
 typedef struct vbe_controlle
 {
@@ -57,13 +56,13 @@ typedef struct vbe_mode
 	uint32_t window_function;		/**< Alternative to VBE function 0x5 */
 	uint16_t bytes_per_scanline;
 	// Only for VBE1.2 and above :
-	uint16_t x_resolution;
-	uint16_t y_resolution;
-	uint8_t char_cell_width;		/**< In pixels; */
-	uint8_t char_cell_heigth;
-	uint8_t mem_planes_number;
+	uint16_t x_res;
+	uint16_t y_res;
+	uint8_t char_cell_w;		/**< In pixels; */
+	uint8_t char_cell_h;
+	uint8_t mem_planes_num;
 	uint8_t bits_per_pixel;
-	uint8_t banks_number;
+	uint8_t banks_num;
 	uint8_t memory_model_type;
 	uint8_t bank_size;				/**< In KB */
 	uint8_t images_number;
@@ -75,5 +74,7 @@ typedef struct vbe_mode
 	uint32_t offscreen_mem_size;	/**< In 1k units */
 	uint8_t reserved[206];
 } vbe_mode_t;
+
+void vbe_init(vbe_controller_t* controller, vbe_mode_t* mode);
 
 #endif

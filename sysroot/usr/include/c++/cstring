@@ -1,0 +1,9 @@
+#ifndef __CPP_CSTRING__
+#define __CPP_CSTRING__
+
+#include <bits/c++config.h>
+extern "C" {
+#include <string.h>
+}
+
+#endif
