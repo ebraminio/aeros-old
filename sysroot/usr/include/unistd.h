@@ -10,6 +10,9 @@
 #define STDERR_FILENO 3
 
 extern char **environ;
+extern const void* const _end;
+extern const void* heap_start;
+extern const void* heap_end;
 
 #if __STDC_HOSTED__ == 1
 long syscall(enum syscall number, ...);
@@ -67,7 +70,7 @@ long sysconf(int name);
 int truncate(const char*, off_t);
 int unlink(const char *pathname);
 ssize_t write(int fd, const void *buf, size_t count);
-
+int brk(void* addr);
 void* sbrk(intptr_t increment);
 int usleep(useconds_t usec);
 

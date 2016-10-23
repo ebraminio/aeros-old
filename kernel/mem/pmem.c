@@ -1,10 +1,10 @@
 #include "mem/pmem.h"
 #include <string.h>
+#include <unistd.h>
 
 #define BLOCK_SIZE 4096
 
 extern const uint8_t _kernel_base;
-extern const uint8_t _kernel_end;
 extern const uint8_t _stack_bottom;
 extern const uint8_t _stack_top;
 
@@ -64,6 +64,16 @@ void alloc_blocks(uintptr_t start, uintptr_t end)
 	}
 }
 
+size_t p_find_free(void)
+{
+	for(size_t i=0; i<sizeof(block_map); i++)
+		if(block_map[i] != 0xFF)
+			for(uint8_t j=0; j<8; j++)
+				if((block_map[i]&(1<<j)) == 0)
+					return i*8+j;
+	return 0;
+}
+
 void pmem_init(multiboot_info_t* mboot_info)
 {
 	memset(block_map, 0xFF, sizeof(block_map));
@@ -81,7 +91,7 @@ void pmem_init(multiboot_info_t* mboot_info)
 	}
 
 	alloc_blocks(0, 0x100000);
-	alloc_blocks((uintptr_t)&_kernel_base, (uintptr_t)&_kernel_end);
+	alloc_blocks((uintptr_t)&_kernel_base, (uintptr_t)&_end);
 	alloc_blocks((uintptr_t)&_stack_bottom, (uintptr_t)&_stack_top);
 
 	if(mboot_info->flags & MULTIBOOT_INFO_CMDLINE)
@@ -90,17 +100,8 @@ void pmem_init(multiboot_info_t* mboot_info)
 		alloc_blocks(mboot_info->drives_addr, (mboot_info->drives_addr&~0xFFF)+mboot_info->drives_length);
 	if(mboot_info->flags & MULTIBOOT_INFO_BOOT_LOADER_NAME)
 		alloc_blocks(mboot_info->boot_loader_name, (mboot_info->boot_loader_name&~0xFFF)+BLOCK_SIZE);
-	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO);	//TODO
-}
-
-size_t p_find_free(void)
-{
-	for(size_t i=0; i<sizeof(block_map); i++)
-		if(block_map[i] != 0xFF)
-			for(uint8_t j=0; j<8; j++)
-				if((block_map[i]&(1<<j)) == 0)
-					return i*8+j;
-	return 0;
+	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO);	// TODO
+	heap_end = heap_start = (void*)(p_find_free()*BLOCK_SIZE);
 }
 
 void* palloc(void)
