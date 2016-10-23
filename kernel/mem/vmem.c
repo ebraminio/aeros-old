@@ -54,25 +54,18 @@ page_table_t page_tables[1024] __attribute((aligned(4096))) = {0};
 void vmap(uintptr_t vstart, uintptr_t pstart, size_t size)
 {
 	const size_t page_num = size/PAGE_SIZE;
-	for(size_t page=0; page<page_num; page++)
+	for(size_t n=0; n<page_num; n++)
 	{
-		const uint16_t dir_index = vstart>>22;
-		const uint16_t ptable_index = (vstart>>12)&0x3FF;
+		page_dir_entry_t* const page_table = &page_dir->tables[vstart>>22];
+		page_table_entry_t*  const page = &page_tables[vstart>>22].pages[(vstart>>12)&0x3FF];
 
-		page_dir->tables[dir_index].present = 1;
-		page_dir->tables[dir_index].writeable = 1;
-		page_dir->tables[dir_index].page_table = (uintptr_t)&page_tables[dir_index]>>12;
-		if(!page_dir->tables[dir_index].page_table)
-		{
-			void* alloc = palloc();
-			IDENTITY_MAP((uintptr_t)alloc, PAGE_SIZE);
-			memset(alloc, 0, PAGE_SIZE);
-			page_dir->tables[dir_index].page_table = (uintptr_t)alloc>>12;
-		}
-		page_table_t* page_table = (page_table_t*)(page_dir->tables[dir_index].page_table<<12);
-		page_table->pages[ptable_index].present = 1;
-		page_table->pages[ptable_index].writeable = 1;
-		page_table->pages[ptable_index].page_address = pstart>>12;
+		page_table->present = 1;
+		page_table->writeable = 1;
+		page_table->page_table = (uintptr_t)&page_tables[vstart>>22]>>12;
+
+		page->present = 1;
+		page->writeable = 1;
+		page->page_address = pstart>>12;
 
 		vstart += PAGE_SIZE;
 		pstart += PAGE_SIZE;
@@ -84,9 +77,6 @@ extern const void _stack_top;
 
 void vmem_init(void)
 {
-//	page_dir = (page_dir_t*)palloc();
-	IDENTITY_MAP((uintptr_t)page_dir, PAGE_SIZE);
-//	memset(page_dir, 0, sizeof(*page_dir));
 	IDENTITY_MAP(0, (size_t)&_end);
 	IDENTITY_MAP((uintptr_t)&_stack_bottom, (uintptr_t)&_stack_top-(uintptr_t)&_stack_bottom);
 
