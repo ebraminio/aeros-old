@@ -14,3 +14,9 @@ all:
 
 lib%:
 	@make -C $*
+
+install-lib%:
+	@make -C $* install
+
+clean-lib%:
+	@make -C $* clean
