@@ -1,6 +1,6 @@
 TARGET = $(shell grep ^TARGET ../config.mk|cut -d' ' -f3)
 
-SYSROOT = $(shell cd ../sysroot && pwd)
+SYSROOT = $(abspath ../sysroot)
 PREFIX = /usr
 
 BINUTILS := $(shell command -v $(TARGET)-as 2> /dev/null)
@@ -84,7 +84,7 @@ binutils-deb: dist/$(BINUTILS_PACKAGE).deb
 dist/$(BINUTILS_PACKAGE).deb: build-binutils/Makefile
 	cd build-binutils && make
 	mkdir -p dist/$(BINUTILS_PACKAGE)/DEBIAN
-	cd build-binutils && make install-strip DESTDIR="$(shell pwd)/dist/$(BINUTILS_PACKAGE)"
+	cd build-binutils && make install-strip DESTDIR="$(PWD)/dist/$(BINUTILS_PACKAGE)"
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/binutils/g' | sed 's/\$$SOFT_VERSION\$$/$(BINUTILS_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(BINUTILS_PACKAGE)/DEBIAN/control
 	find dist/$(BINUTILS_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
 	rm -r dist/$(BINUTILS_PACKAGE)/usr/share/info
@@ -119,8 +119,8 @@ dist/$(GCC_PACKAGE).deb: build-gcc/Makefile
 	cd build-gcc && make all-gcc
 	cd build-gcc && make all-target-libgcc
 	mkdir -p dist/$(GCC_PACKAGE)/DEBIAN
-	cd build-gcc && make install-strip-gcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
-	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(shell pwd)/dist/$(GCC_PACKAGE)"
+	cd build-gcc && make install-strip-gcc DESTDIR="$(PWD)/dist/$(GCC_PACKAGE)"
+	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(PWD)/dist/$(GCC_PACKAGE)"
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/gcc/g' | sed 's/\$$SOFT_VERSION\$$/$(GCC_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(GCC_PACKAGE)/DEBIAN/control
 	echo Depends: libc6, $(TARGET)-binutils >> dist/$(GCC_PACKAGE)/DEBIAN/control
 	rm -r dist/$(GCC_PACKAGE)/usr/share/info

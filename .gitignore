@@ -2,6 +2,7 @@
 .vimrc
 .gdbinit
 bochsrc.bxrc
+gkd*.xml
 
 #log files
 bochslog.txt
@@ -10,6 +11,8 @@ netdump.pcap
 serial.txt
 .*.swp
 core
+*.log
+jmpDB.mv.db
 
 #intermediate files
 *.o
