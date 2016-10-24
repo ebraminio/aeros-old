@@ -2,12 +2,12 @@
 
 SYSROOT = $(abspath $(CURDIR)/../../sysroot)
 
-C_FILES = $(shell find -type f -name '*.c' -print)
-CC_FILES = $(shell find -type f -name '*.cc' -print)
-S_FILES = $(shell find -type f -name '*.S' -print)
-OBJECTS = $(C_FILES:.c=.o) $(CC_FILES:.cc=.o) $(S_FILES:.S=.o)
+C_FILES ?= $(shell find -type f -name '*.c' -print)
+CC_FILES ?= $(shell find -type f -name '*.cc' -print)
+S_FILES ?= $(shell find -type f -name '*.S' -print)
+OBJECTS ?= $(C_FILES:.c=.o) $(CC_FILES:.cc=.o) $(S_FILES:.S=.o)
 
-LIBNAME = $(lastword $(subst /, , $(CURDIR)))
+LIBNAME ?= $(lastword $(subst /, , $(CURDIR)))
 
 CPPFLAGS += -I$(PWD)/include -ffreestanding -fbuiltin
 
@@ -21,7 +21,7 @@ depends:
 
 install:: all
 	@mkdir -p $(SYSROOT)/usr/lib
-	@cp -uv lib$(LIBNAME).a $(SYSROOT)/usr/lib
+	@cp -uv lib$(LIBNAME).a $(SYSROOT)/usr/lib/
 
 uninstall::
 	@rm -fv $(SYSROOT)/usr/lib/lib$(LIBNAME).a
