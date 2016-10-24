@@ -9,6 +9,5 @@ void* sbrk(intptr_t increment)
 
 	if(brk((uint8_t*)heap_end+increment) != 0)
 		return (void*)-1;
-	heap_end = (uint8_t*)heap_end + increment;
 	return (void*)previous_heap_end;
 }
