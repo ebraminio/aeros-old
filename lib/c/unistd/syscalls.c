@@ -31,4 +31,3 @@ int brk(void* addr)
 {
 	return (int)syscall(SYS_BRK, addr);
 }
-

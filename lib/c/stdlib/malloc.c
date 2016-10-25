@@ -22,7 +22,7 @@ void* malloc(size_t size)
 	while(1)
 	{
 		if((uint8_t*)heap_blk+sizeof(*heap_blk)+size > (uint8_t*)heap_end)
-			sbrk(size + (size%PAGE_SIZE?PAGE_SIZE-(size%PAGE_SIZE) : 0));
+			sbrk(size + (size%PAGE_SIZE ? PAGE_SIZE-(size%PAGE_SIZE) : 0));
 		if(heap_blk->magic != HEAP_MAGIC)
 		{
 			heap_blk->magic = HEAP_MAGIC;
@@ -62,7 +62,7 @@ static void merge_next(heap_blk_t* heap_blk)
 {
 	heap_blk_t* oldnext = NEXT_HBLK(heap_blk);
 	heap_blk->size += oldnext->size + sizeof(*oldnext);
-	
+
 	heap_blk_t* newnext = NEXT_HBLK(oldnext);
 	if(newnext->magic == HEAP_MAGIC)
 		newnext->previous = heap_blk;
