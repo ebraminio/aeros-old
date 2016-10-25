@@ -1,7 +1,3 @@
-/**
- *  \file
- */
-
 #include <stdint.h>
 #include <stdio.h>
 #include "multiboot.h"
@@ -27,12 +23,6 @@ extern const uint8_t _stack_top;
 extern const uint8_t _initial_esp;
 extern void _enter_usermode(void);
 
-/**
- *  \param magic Multiboot 1 or 2 magic number
- *  \param address Address of a multiboot_info_t structure
- *  \return Does not return
- *  \see multiboot.h multiboot2.h
- */
 __attribute__((noreturn))
 void kernel_main(unsigned long magic, unsigned long address)
 {
