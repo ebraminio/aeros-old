@@ -45,7 +45,10 @@ void keyboard_handler(regs_t* r)
 	{
 		while(kb_device.lock);
 		kb_device.lock = 1;
-		*(kb_device.data_end++) = translate_scan(ps2_direct_read());
+		char scan = ps2_direct_read();
+		char c = translate_scan(scan&~0x80);
+		if(c && !scan&0x80)
+			*(kb_device.data_end++) = c;
 		if(kb_device.data_end == kb_device.buffer_end)
 			kb_device.data_end = kb_device.buffer_start;
 		kb_device.lock = 0;
