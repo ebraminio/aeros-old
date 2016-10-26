@@ -15,6 +15,7 @@
 #include "mem/pmem.h"
 #include "mem/vmem.h"
 #include "devices/pci.h"
+#include "sys/syscalls.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
@@ -44,6 +45,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 	printf(" GDT");
 	idt_init();
 	printf(" IDT");
+	syscalls_init();
+	printf(" Syscalls");
 	keyboard_init();
 	printf(" KB");
 	pit_init();
