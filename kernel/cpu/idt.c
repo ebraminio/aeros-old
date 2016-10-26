@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "devices/pic.h"
 #include "io/log.h"
+#include "io/serial.h"
 
 #define TASK32	0x5
 #define INT16	0x6
@@ -193,6 +194,11 @@ void idt_init(void)
 }
 void fault_handler(regs_t* r)
 {
+	put_serial(1, "Fault ");
+	write_serial(1, '0'+r->int_no/10);
+	write_serial(1, '0'+r->int_no%10);
+	put_serial(1, "\r\n");
+
 	if(r->int_no == 3)
 	{
 		nopanic("Breakpoint interrupt\n"

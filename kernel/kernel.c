@@ -29,34 +29,45 @@ void kernel_main(unsigned long magic, unsigned long address)
 {
 	multiboot_info_t* mboot_info = (multiboot_info_t*) address;
 
+	serial_init(1);
+
+	if(magic != MULTIBOOT_BOOTLOADER_MAGIC)
+	{
+		put_serial(1, "Multiboot required\r\n");
+		video_init();
+		panic("Not loaded by Multiboot-compliant bootloader");
+	}
+	if((mboot_info->flags & (MULTIBOOT_INFO_MEMORY|MULTIBOOT_INFO_MEM_MAP)) != (MULTIBOOT_INFO_MEMORY|MULTIBOOT_INFO_MEM_MAP))
+	{
+		put_serial(1, "Multiboot memory map required\r\n");
+		video_init();
+		panic("AerOS needs memory information from Multiboot");
+	}
+
+	gdt_init();
+	put_serial(1, "GDT");
+	idt_init();
+	put_serial(1, " IDT");
+	acpi_init();
+	put_serial(1, " ACPI");
+	pmem_init(mboot_info);
+	put_serial(1, " PMEM");
+	vmem_init();
+	put_serial(1, " VMEM");
+
 	if(mboot_info->flags & MULTIBOOT_INFO_VBE_INFO && ((vbe_mode_t*)mboot_info->vbe_mode_info)->mode_attributes & VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE)
 		vbe_init((vbe_controller_t*)mboot_info->vbe_control_info, (vbe_mode_t*)mboot_info->vbe_mode_info);
 	else video_init();
+	put_serial(1, " Video");
 
-	if(magic != MULTIBOOT_BOOTLOADER_MAGIC)
-		panic("Not loaded by Multiboot-compliant bootloader\n");
+	nopanic("Serial GDT IDT ACPI PMEM VMEM Video");
 
-	if((mboot_info->flags & (MULTIBOOT_INFO_MEMORY|MULTIBOOT_INFO_MEM_MAP)) != (MULTIBOOT_INFO_MEMORY|MULTIBOOT_INFO_MEM_MAP))
-		panic("AerOS needs memory information from Multiboot");
-
-	serial_init(1);
-	nopanic("Serial");
-	gdt_init();
-	printf(" GDT");
-	idt_init();
-	printf(" IDT");
 	syscalls_init();
 	printf(" Syscalls");
 	keyboard_init();
 	printf(" KB");
 	pit_init();
 	printf(" PIT");
-	acpi_init();
-	printf(" ACPI");
-	pmem_init(mboot_info);
-	printf(" PMEM");
-	vmem_init();
-	printf(" VMEM");
 	pci_init();
 	printf(" PCI");
 	putchar('\n');

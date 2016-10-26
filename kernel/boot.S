@@ -68,6 +68,7 @@ _stack_top:
 .global start
 .type start, @function
 start:
+	xchgw %bx, %bx
 	movl $_stack_top, %esp
 
 	# Multiboot pointer

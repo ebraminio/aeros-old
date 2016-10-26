@@ -1,4 +1,5 @@
 #include "io/log.h"
+#include "io/serial.h"
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -20,6 +21,7 @@ void print_size(uint32_t size)
 __attribute__((noreturn))
 void panic(const char* format, ...)
 {
+	put_serial(1, "Kernel panic!");
 	va_list argp;
 
 	printf(" [ERR ]\t");
