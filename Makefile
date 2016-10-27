@@ -10,9 +10,18 @@ QEMUFLAGS = -vga std -serial mon:stdio -net dump,file=netdump.pcap -net nic,mode
 qemu: hdd.img $(SYSROOT)/boot/aeros-i686.kernel
 	qemu-system-i386 $(QEMUFLAGS) -hda hdd.img -kernel kernel/aeros-i686.kernel
 
+qemu-hdd: hdd.img
+	qemu-system-i386 $(QEMUFLAGS) -hda hdd.img
+
 uncrustify: uncrustify.cfg
-	find kernel sysroot/usr/include -type f -name '*.c' -o -name '*.h' ! -name 'multiboot.h' ! -name 'multiboot2.h' ! -name 'elf.h' | $@ -c $< -F - --replace --no-backup
+	find kernel lib/c lib/stdc++ sysroot/usr/include -type f -name '*.c' -o -name '*.h' ! -name 'multiboot.h' ! -name 'multiboot2.h' ! -name 'elf.h' | $@ -c $< -F - --replace --no-backup
 	sed -i 's/) ;/);/g' $$(grep ' ;' -rl kernel)
+
+aeros-i386.sym: $(SYSROOT)/boot/aeros-i686.kernel
+	nm $< | grep -i " t " | awk '{print $$1" "$$3}' > $@
+
+bochs: bochsrc.bxrc aeros-i386.sym
+	$@ -f $<
 
 hdd: hdd.img sysroot/
 	kpartx -av $<

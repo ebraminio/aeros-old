@@ -22,6 +22,8 @@ void abort(void) __attribute__((__noreturn__));
 int atoi(const char *nptr);
 long atol(const char *nptr);
 long long atoll(const char *nptr);
+long int strol(const char* nptr, char** endptr, int base);
+long long int stroll(const char* nptr, char** endptr, int base);
 double atof(const char *str);
 int atexit(void (*function)(void));
 void* malloc(size_t size);

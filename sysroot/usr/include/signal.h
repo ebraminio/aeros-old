@@ -1,7 +1,3 @@
-/**
- * \file
- */
-
 #ifndef SIGNAL_H
 #define SIGNAL_H
 
@@ -114,4 +110,11 @@ int siggetmask(void);
 extern const char* const sys_siglist[NSIG];
 extern const char* const sys_signame[NSIG];
 
+int sigemptyset(sigset_t* set);
+int sigfillset(sigset_t* set);
+int sigdelset(sigset_t* set, int signum);
+int sigismember(const sigset_t* set, int signum);
+int sigprocmask(int how, const sigset_t* restrict set, sigset_t* restrict oset);
+int kill(pid_t pid, int sig);
+int raise(int sig);
 #endif

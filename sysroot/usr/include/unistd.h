@@ -19,7 +19,11 @@ long syscall(enum syscall number, ...);
 #define syscall(...) syscall(__VA_ARGS__, 0, 0, 0, 0)
 #endif
 
+#define R_OK (1<<0)
+#define W_OK (1<<1)
+#define X_OK (1<<2)
 int access(const char* path, int amode);
+
 unsigned alarm(unsigned seconds);
 int chdir(const char* path);
 int chown(const char* path, uid_t owner, gid_t group);
@@ -73,5 +77,11 @@ ssize_t write(int fd, const void *buf, size_t count);
 int brk(void* addr);
 void* sbrk(intptr_t increment);
 int usleep(useconds_t usec);
+
+pid_t tcgetpgrp(int fd);
+pid_t getpgrp(void);
+int tcsetpgrp(int fd, pid_t pgrp);
+
+int setpgid(pid_t pid, pid_t pgid);
 
 #endif

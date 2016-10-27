@@ -3,8 +3,6 @@ TARGET = $(shell grep ^TARGET ../config.mk|cut -d' ' -f3)
 SYSROOT = $(abspath ../sysroot)
 PREFIX = /usr
 
-BINUTILS := $(shell command -v $(TARGET)-as 2> /dev/null)
-
 BINUTILS_VERSION = 2.27
 GCC_VERSION = 6.1.0
 ISL_VERSION = 0.16.1
@@ -13,6 +11,9 @@ BINUTILS_PACKAGE = $(TARGET)-binutils-$(BINUTILS_VERSION)-$(PACKAGE_VERSION)
 GCC_PACKAGE = $(TARGET)-gcc-$(GCC_VERSION)-$(PACKAGE_VERSION)
 
 PACKAGE_VERSION = 0.1-$(shell date +'%Y%m%d')
+
+BINUTILS_CONFIG_ARGS = --target=$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix="$(PREFIX)" --disable-nls --disable-werror
+GCC_CONFIG_ARGS = --target=$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix="$(PREFIX)" --enable-languages=c,c++ --disable-nls --disable-werror --with-isl
 
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
@@ -66,7 +67,7 @@ else
 		cd binutils-$(BINUTILS_VERSION)/ld && AUTOCONF=autoconf2.64 $(AUTOMAKE)
 endif
 	mkdir -p build-binutils
-	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure --target=$(TARGET) --prefix=$(PREFIX) --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --disable-nls --disable-werror
+	cd build-binutils && ../binutils-$(BINUTILS_VERSION)/configure $(BINUTILS_CONFIG_ARGS)
 
 binutils-unpatch: patches/binutils-$(BINUTILS_VERSION).patch
 ifeq ($(NO_AUTOMAKE),1)
@@ -107,7 +108,7 @@ else
 endif
 	cd gcc-$(GCC_VERSION) && ./contrib/download_prerequisites
 	mkdir -p build-gcc
-	cd build-gcc && ../gcc-$(GCC_VERSION)/configure --target=$(TARGET) --with-sysroot=/usr/$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix=$(PREFIX) --enable-languages=c --disable-nls --disable-werror --with-isl
+	cd build-gcc && ../gcc-$(GCC_VERSION)/configure $(GCC_CONFIG_ARGS)
 
 gcc-install: build-gcc/Makefile
 	cd build-gcc && make all-gcc

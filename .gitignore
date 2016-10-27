@@ -3,16 +3,19 @@
 .gdbinit
 bochsrc.bxrc
 gkd*.xml
+.gourcerc
 
 #log files
 bochslog.txt
 doxylog
 netdump.pcap
 serial.txt
+*.log
 .*.swp
 core
 *.log
-jmpDB.mv.db
+*.db
+*.dot
 
 #intermediate files
 *.o
