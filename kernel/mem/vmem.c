@@ -49,11 +49,12 @@ page_dir_t _page_dir __attribute((aligned(4096))) = {0};
 page_dir_t* page_dir = &_page_dir;
 page_table_t first_page_table __attribute((aligned(4096))) = {0};
 
-#define IDENTITY_MAP(p,s) vmap(p,p,s)
-
 void vmap(uintptr_t vstart, uintptr_t pstart, size_t size)
 {
-	const size_t page_num = size/PAGE_SIZE;
+	if(!size)
+		return;
+
+	const size_t page_num = size/PAGE_SIZE + (size%PAGE_SIZE ? 1 : 0);
 	for(size_t n=0; n<page_num; n++)
 	{
 		page_dir_entry_t* const dir_entry = &page_dir->tables[vstart>>22];

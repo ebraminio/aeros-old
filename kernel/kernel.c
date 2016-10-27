@@ -110,7 +110,7 @@ void kernel_main(unsigned long magic, unsigned long address)
 
 	if(mboot_info->flags & MULTIBOOT_INFO_CMDLINE)
 	{
-		vmap(mboot_info->cmdline, mboot_info->cmdline, 4096);
+		IDENTITY_MAP(mboot_info->cmdline, 255);	// Arbitrary number
 		printf("\t\tKernel command-line: %s\n", (char*)mboot_info->cmdline);
 	}
 	if(mboot_info->flags & MULTIBOOT_INFO_DRIVE_INFO)
@@ -154,5 +154,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 			mboot_info->vbe_interface_seg, mboot_info->vbe_interface_off, mboot_info->vbe_interface_len);
 	}
 
-	for(;;);
+	int c;
+	for(;;)
+		if((c=getchar()) != EOF)
+			putchar(c);
 }

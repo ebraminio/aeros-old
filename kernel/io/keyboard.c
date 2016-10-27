@@ -4,6 +4,7 @@
 #include "devices/pic.h"
 #include "io/kb_layouts/fr.h"
 #include "io/log.h"
+#include <stdio.h>
 
 #define ECHO 0xEE
 #define GET_SET_SCANCODE 0xF0
@@ -35,6 +36,22 @@ uint8_t translate_scan(uint8_t scan)
 	return scan < sizeof(KEYBOARD_MAP) ? KEYBOARD_MAP[scan] : 0;
 }
 
+int getchar(void)
+{
+	while(kb_device.lock);
+	kb_device.lock=1;
+	if(kb_device.data_start == kb_device.data_end)
+	{
+		kb_device.lock=0;
+		return EOF;
+	}
+	int c = *(kb_device.data_start++);
+	if(kb_device.data_start == kb_device.buffer_end)
+		kb_device.data_start = kb_device.buffer_start;
+	kb_device.lock=0;
+	return c;
+}
+
 void keyboard_handler(regs_t* r)
 {
 	if(kb_device.state & PS2_WAIT_SPECIAL)
@@ -43,15 +60,12 @@ void keyboard_handler(regs_t* r)
 		kb_device.state &= ~PS2_WAIT_DATA;
 	else
 	{
-		while(kb_device.lock);
-		kb_device.lock = 1;
 		char scan = ps2_direct_read();
 		char c = translate_scan(scan&~0x80);
-		if(c && !scan&0x80)
+		if(c && ~scan&0x80)
 			*(kb_device.data_end++) = c;
 		if(kb_device.data_end == kb_device.buffer_end)
 			kb_device.data_end = kb_device.buffer_start;
-		kb_device.lock = 0;
 	}
 }
 

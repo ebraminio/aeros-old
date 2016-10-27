@@ -25,8 +25,8 @@ video_device_t* vgat_init(void *text_buffer, uint16_t width, uint16_t height)
 	video_device->charcell_h = 1;
 	video_device->buffer = text_buffer;
 	video_device->buffer_end = (uint8_t*)text_buffer + width*height * sizeof(uint16_t);
-	video_device->color = COLOR_LIGHT_GREY | COLOR_BLACK<<4;
-	vgat_clear(video_device->color);
+	video_device->fgcolor = VGAT_LIGHT_GREY | VGAT_BLACK<<4;
+	vgat_clear(video_device->fgcolor);
 	return video_device;
 }
 
@@ -44,7 +44,7 @@ static void vgat_scroll(uint32_t n)
 
 	for(uint32_t y=video_device->height-n; y<video_device->height; y++)
 		for(uint32_t x=0; x<video_device->width; x++)
-			vgat_putchar(x, y, ' ', video_device->color);
+			vgat_putchar(x, y, ' ', video_device->fgcolor);
 
 	video_device->row -= n;
 }
@@ -60,10 +60,10 @@ static void vgat_clear(uint32_t color)
 
 static void vgat_fgcolor(uint32_t color)
 {
-	video_device->color = ((uint8_t)color&0xF) | (video_device->color&0xF0);
+	video_device->fgcolor = ((uint8_t)color&0xF) | (video_device->fgcolor&0xF0);
 }
 
 static void vgat_bgcolor(uint32_t color)
 {
-	video_device->color = ((uint8_t)video_device->color&0xF) | (((uint8_t)color&0xF)<<4);
+	video_device->fgcolor = ((uint8_t)video_device->fgcolor&0xF) | (((uint8_t)color&0xF)<<4);
 }

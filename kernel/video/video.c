@@ -36,12 +36,21 @@ int putchar(int c)
 		video_device->col = 0;
 		video_device->row++;
 	}
-	if (video_device->row*video_device->charcell_h >= video_device->height && video_device->scroll)
+	if ((video_device->row+1)*video_device->charcell_h >= video_device->height && video_device->scroll)
 		video_device->scroll(1);
 
 	switch(c)
 	{
-		case BS: video_device->putchar(--video_device->col*video_device->charcell_w, video_device->row*video_device->charcell_h, ' ', video_device->color);
+		case BS:
+			if(video_device->col==0)
+			{
+				video_device->col = video_device->width/video_device->charcell_w;
+				if(video_device->width%video_device->charcell_w == 0)
+					video_device->col--;
+				video_device->row--;
+			}
+			else video_device->col--;
+			video_device->putchar(video_device->col*video_device->charcell_w, video_device->row*video_device->charcell_h, ' ', video_device->fgcolor);
 			break;
 		case TAB:
 			do putchar(' ');
@@ -54,7 +63,7 @@ int putchar(int c)
 			video_device->col = 0;
 			break;
 		default:
-			video_device->putchar(video_device->col*video_device->charcell_w, video_device->row*video_device->charcell_h, c, video_device->color);
+			video_device->putchar(video_device->col*video_device->charcell_w, video_device->row*video_device->charcell_h, c, video_device->fgcolor);
 			video_device->col++;
 	}
 

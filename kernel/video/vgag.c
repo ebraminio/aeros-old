@@ -3,24 +3,13 @@
 #include <stddef.h>
 #include "video/vga_fonts.h"
 #include <string.h>
-
-typedef union
-{
-	struct
-	{
-		uint8_t b;
-		uint8_t g;
-		uint8_t r;
-		uint8_t unused;
-	};
-	uint32_t numeric;
-} bgra_t;
+#include "mem/vmem.h"
 
 static void vgag_putchar(uint32_t x, uint32_t y, int c, uint32_t color);
 static void vgag_scroll(uint32_t n);
 static void vgag_clear(uint32_t color);
 
-video_device_t* vgag_init( vbe_controller_t* controller, vbe_mode_t* mode)
+video_device_t* vgag_init(vbe_controller_t* controller, vbe_mode_t* mode)
 {
 	if(mode->mode_attributes & VBE_MODE_ATTRIB_LINEAR_FRAME_BUFFER_MODE_AVAILABLE)
 		video_device->buffer = (void*)mode->frame_buffer;
@@ -36,6 +25,11 @@ video_device_t* vgag_init( vbe_controller_t* controller, vbe_mode_t* mode)
 	}
 	else return NULL;
 
+	size_t buf_size = video_device->width * video_device->height \
+		* (video_device->depth/8);
+	video_device->buffer_end = (void*)(mode->frame_buffer+buf_size);
+	IDENTITY_MAP(mode->frame_buffer, buf_size);
+
 	video_device->graphic_supported = (mode->mode_attributes & VBE_MODE_ATTRIB_GRAPHIC_MODE) != 0;
 	if(!video_device->graphic_supported)
 		return NULL;
@@ -49,7 +43,8 @@ video_device_t* vgag_init( vbe_controller_t* controller, vbe_mode_t* mode)
 		video_device->font = (uint8_t*)g_8x16_font;
 	else return NULL;
 
-	video_device->color = 0xFFFFFF;
+	video_device->fgcolor = VGAG_WHITE;
+	video_device->bgcolor = VGAG_BLACK;
 	video_device->row = video_device->col = 0;
 	video_device->putchar = vgag_putchar;
 	video_device->scroll = vgag_scroll;
@@ -67,11 +62,9 @@ static void vgag_putchar(uint32_t x, uint32_t y, int c, uint32_t color)
 	uint8_t* font = video_device->font;
 	for(size_t j=0; j<video_device->charcell_h; j++)
 		for(uint8_t i=0; i<8; i++)
-		{
 			if(font[c*video_device->charcell_h+j] & (1<<(7-i)))
 				((bgra_t*)video_device->buffer)[video_device->width*(y+j)+x+i].numeric = color;
-			else ((bgra_t*)video_device->buffer)[video_device->width*(y+j)+x+i].numeric = 0;
-		}
+			else ((bgra_t*)video_device->buffer)[video_device->width*(y+j)+x+i].numeric = video_device->bgcolor;
 }
 
 static void vgag_scroll(uint32_t n)
@@ -80,15 +73,22 @@ static void vgag_scroll(uint32_t n)
 
 	const size_t row_size = video_device->width * video_device->charcell_w * video_device->charcell_h;
 	const size_t offset = row_size * n;
+	uint8_t* p = video_device->buffer;
 
-	for(uint8_t* p = video_device->buffer; p<video_device->buffer_end - offset; p += offset)
+	while(p+offset+row_size<video_device->buffer_end)
+	{
 		memcpy(p, p+offset, row_size);
+		p += offset;
+	}
+	for(bgra_t* bgra=(bgra_t*)p; (uint8_t*)bgra<video_device->buffer_end; bgra++)
+		bgra->numeric = video_device->bgcolor;
 }
 
 static void vgag_clear(uint32_t color)
 {
-	// No color option for now
-	memset(video_device->buffer, 0, video_device->buffer_end-video_device->buffer);
+	bgra_t* p = (bgra_t*)video_device->buffer;
+	while((uint8_t*)p<video_device->buffer_end)
+		(p++)->numeric = color;
 	video_device->row = 0;
 	video_device->col = 0;
 }

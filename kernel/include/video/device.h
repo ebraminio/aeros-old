@@ -9,7 +9,7 @@ typedef struct
 	uint8_t *buffer, *buffer_end;
 	uint8_t charcell_w, charcell_h;
 	uint8_t graphic_supported;
-	uint32_t color;
+	uint32_t fgcolor, bgcolor;
 	uint8_t* font;
 
 	void (*putchar)(uint32_t x, uint32_t y, int c, uint32_t color);
