@@ -15,7 +15,7 @@ qemu-hdd: hdd.img
 
 uncrustify: uncrustify.cfg
 	find kernel lib/c lib/stdc++ sysroot/usr/include -type f -name '*.c' -o -name '*.h' ! -name 'multiboot.h' ! -name 'multiboot2.h' ! -name 'elf.h' | $@ -c $< -F - --replace --no-backup
-	sed -i 's/) ;/);/g' $$(grep ' ;' -rl kernel)
+	sed -i 's/) ;/);/g' $$(grep ' ;' -rl kernel lib/c lib/stdc++)
 
 aeros-i386.sym: $(SYSROOT)/boot/aeros-i686.kernel
 	nm $< | grep -i " t " | awk '{print $$1" "$$3}' > $@
