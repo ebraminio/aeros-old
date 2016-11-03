@@ -17,6 +17,7 @@
 #include "devices/pci.h"
 #include "sys/syscalls.h"
 #include "devices/rtc.h"
+#include "devices/pc_speaker.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
@@ -73,6 +74,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 	printf(" RTC");
 	pci_init();
 	printf(" PCI");
+	pc_speaker_init();
+	printf(" PC-SPKR");
 	putchar('\n');
 
 	char id[13];
