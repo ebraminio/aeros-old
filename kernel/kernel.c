@@ -153,6 +153,7 @@ void kernel_main(unsigned long magic, unsigned long address)
 	printf(" IDT");
 	pit_init();
 	pc_speaker_init();
+	printf(" PC-SPKR");
 	keyboard_init();
 
 	for(;;);
