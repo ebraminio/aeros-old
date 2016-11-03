@@ -89,9 +89,9 @@ void keyboard_init()
 	kb_device.buffer_end = ring_buffer+sizeof(ring_buffer);
 	kb_device.lock = 0;
 
-	irq_install_handler(1, keyboard_handler);
+	install_irq_handler(1, keyboard_handler);
 	unmask_irq(1);
-	irq_install_handler(12, keyboard_handler);
+	install_irq_handler(12, keyboard_handler);
 	unmask_irq(12);
 
 	if(ps2_cmd(SCAN_DISABLE) != ACK)

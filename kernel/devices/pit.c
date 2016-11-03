@@ -3,38 +3,46 @@
 #include "io/log.h"
 #include "devices/pic.h"
 
-#define PIT_PORT 0x40
-#define PIT_DATA0 (PIT_PORT+0)
-#define PIT_DATA1 (PIT_PORT+1)
-#define PIT_DATA2 (PIT_PORT+2)
-#define PIT_CMD (PIT_PORT+3)
-#define PIT_FREQ 1193180
+#define PIT_DATA0	0x40
+#define PIT_DATA1	0x41
+#define PIT_DATA2	0x42
+#define PIT_CMD		0x43
+#define PIT_BASE_FREQ 1193180
 
-void set_pit_freq(uint16_t hz)
+void set_pit_freq(uint16_t freq)
 {
-	uint16_t divisor = PIT_FREQ/hz;
+	uint16_t divisor = PIT_BASE_FREQ/freq;
 	outb(PIT_CMD, 0x36);
 	outb(PIT_DATA0, divisor & 0xFF);
 	outb(PIT_DATA0, divisor >> 8);
 }
 
-uint32_t timer_ticks = 0;
-uint8_t timer_subticks = 0;
+static uint32_t timer_tick = 0;
+static uint16_t timer_subtick = 0;	// Currently millitick
 
 void pit_handler(regs_t* regs)
 {
-	if(++timer_subticks == 100)
+	if(++timer_subtick == 1000)
 	{
-		timer_ticks++;
-		timer_subticks = 0;
+		timer_subtick = 0;
+		timer_tick++;
 	}
-	if(timer_ticks==0xFFFFFFFF)
-		panic("Max ticks reached");
+	if(timer_tick==0xFFFFFFFF)
+		panic("Max PIT tick reached");
+}
+
+void pit_wait(uint16_t millis)
+{
+	uint16_t target_subtick = (timer_subtick + millis)%1000;
+	uint32_t target_tick = timer_tick + (timer_subtick+millis)/1000;
+
+	while(timer_tick < target_tick);
+	while(timer_subtick < target_subtick);
 }
 
 void pit_init(void)
 {
 	set_pit_freq(1000);
-	irq_install_handler(0, pit_handler);
+	install_irq_handler(0, pit_handler);
 	unmask_irq(0);
 }

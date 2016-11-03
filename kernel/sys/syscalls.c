@@ -158,5 +158,5 @@ void syscall_handler(regs_t* r)
 
 void syscalls_init(void)
 {
-	irq_install_handler(SYSCALL_IRQ, syscall_handler);
+	install_irq_handler(SYSCALL_IRQ, syscall_handler);
 }

@@ -16,6 +16,7 @@
 #include "mem/vmem.h"
 #include "devices/pci.h"
 #include "sys/syscalls.h"
+#include "devices/rtc.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
@@ -68,6 +69,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 	printf(" KB");
 	pit_init();
 	printf(" PIT");
+	rtc_init();
+	printf(" RTC");
 	pci_init();
 	printf(" PCI");
 	putchar('\n');
