@@ -21,10 +21,10 @@ LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-desc
 
 AUTOMAKE = automake-1.11
 ifeq ("$(shell which $(AUTOMAKE))", "")
-  AUTOMAKE = $(PWD)/prefix/bin/automake-1.11
+  AUTOMAKE = $(CURDIR)/prefix/bin/automake-1.11
 else
   ifneq ($(shell $(AUTOMAKE) --version|head -n1|cut -d'.' -f3), 6)
-    AUTOMAKE = $(PWD)/prefix/bin/automake-1.11
+    AUTOMAKE = $(CURDIR)/prefix/bin/automake-1.11
   endif
 endif
 
@@ -36,7 +36,7 @@ ifneq ($(NO_AUTOMAKE),1)
 	wget -nv -c ftp://ftp.gnu.org/gnu/automake/automake-1.11.6.tar.gz
 	tar xzf automake-1.11.6.tar.gz
 	mkdir -p build-automake
-	cd build-automake && ../automake-1.11.6/configure --prefix="$(PWD)/prefix"
+	cd build-automake && ../automake-1.11.6/configure --prefix="$(CURDIR)/prefix"
 	cd build-automake && make && make install
 	touch automake_present
   else
@@ -85,10 +85,10 @@ binutils-deb: dist/$(BINUTILS_PACKAGE).deb
 dist/$(BINUTILS_PACKAGE).deb: build-binutils/Makefile
 	cd build-binutils && make
 	mkdir -p dist/$(BINUTILS_PACKAGE)/DEBIAN
-	cd build-binutils && make install-strip DESTDIR="$(PWD)/dist/$(BINUTILS_PACKAGE)"
+	cd build-binutils && make install-strip DESTDIR="$(CURDIR)/dist/$(BINUTILS_PACKAGE)"
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/binutils/g' | sed 's/\$$SOFT_VERSION\$$/$(BINUTILS_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(BINUTILS_PACKAGE)/DEBIAN/control
 	find dist/$(BINUTILS_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
-	rm -r dist/$(BINUTILS_PACKAGE)/usr/share/info
+	rm -rfv dist/$(BINUTILS_PACKAGE)/usr/share/info
 	chmod 0755 $$(find dist/$(BINUTILS_PACKAGE)/usr -type d)
 	fakeroot dpkg-deb -b dist/$(BINUTILS_PACKAGE)
 	lintian $(LINTIAN_FLAGS) dist/$(BINUTILS_PACKAGE).deb
@@ -120,12 +120,12 @@ dist/$(GCC_PACKAGE).deb: build-gcc/Makefile
 	cd build-gcc && make all-gcc
 	cd build-gcc && make all-target-libgcc
 	mkdir -p dist/$(GCC_PACKAGE)/DEBIAN
-	cd build-gcc && make install-strip-gcc DESTDIR="$(PWD)/dist/$(GCC_PACKAGE)"
-	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(PWD)/dist/$(GCC_PACKAGE)"
+	cd build-gcc && make install-strip-gcc DESTDIR="$(CURDIR)/dist/$(GCC_PACKAGE)"
+	cd build-gcc && make install-strip-target-libgcc DESTDIR="$(CURDIR)/dist/$(GCC_PACKAGE)"
 	cat control-template | sed 's/\$$TARGET\$$/$(TARGET)/g' | sed 's/\$$SOFT\$$/gcc/g' | sed 's/\$$SOFT_VERSION\$$/$(GCC_VERSION)/g' | sed 's/\$$PACKAGE_VERSION\$$/$(PACKAGE_VERSION)/g' | sed 's/\$$ARCH\$$/amd64/g' > dist/$(GCC_PACKAGE)/DEBIAN/control
 	echo Depends: libc6, $(TARGET)-binutils >> dist/$(GCC_PACKAGE)/DEBIAN/control
-	rm -r dist/$(GCC_PACKAGE)/usr/share/info
-	rm -r dist/$(GCC_PACKAGE)/usr/share/man/man7
+	rm -rfv dist/$(GCC_PACKAGE)/usr/share/info
+	rm -rfv dist/$(GCC_PACKAGE)/usr/share/man/man7
 	find dist/$(GCC_PACKAGE)/usr/share/man -type f | while read f; do gzip -9 $$f; done
 	mkdir -p dist/$(GCC_PACKAGE)/usr/$(TARGET)/include
 	cp -r $(SYSROOT)/usr/include/* dist/$(GCC_PACKAGE)/usr/$(TARGET)/include
