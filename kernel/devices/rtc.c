@@ -2,6 +2,7 @@
 #include "devices/pic.h"
 #include <stdint.h>
 #include <sys/io.h>
+#include "io/log.h"
 
 #define REG_PORT	0x70
 #define DATA_PORT	0x71
@@ -106,9 +107,29 @@ struct tm rtc_time(void)
 	return rtc_time_nowait();
 }
 
+static uint32_t timer_tick = 0;
+static uint16_t timer_subtick = 0;	// Currently about milliticks
+
 void rtc_handler(regs_t* r)
 {
 	read_cmos(STATC_REG);
+
+	if(++timer_subtick == 1000)
+	{
+		timer_subtick = 0;
+		timer_tick++;
+	}
+	if(timer_tick==0xFFFFFFFF)
+		panic("Max RTC tick reached");
+}
+
+void rtc_wait(uint16_t millis)
+{
+	uint16_t target_subtick = (timer_subtick + millis)%1000;
+	uint32_t target_tick = timer_tick + (timer_subtick+millis)/1000;
+
+	while(timer_tick < target_tick);
+	while(timer_subtick < target_subtick);
 }
 
 void rtc_set_freq(uint16_t freq)

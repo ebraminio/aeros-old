@@ -5,5 +5,6 @@
 
 void pit_init(void);
 void set_pit_freq(uint16_t hz);
+void pit_wait(uint16_t millis);
 
 #endif

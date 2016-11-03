@@ -17,18 +17,27 @@ void set_pit_freq(uint16_t freq)
 	outb(PIT_DATA0, divisor >> 8);
 }
 
-uint32_t timer_ticks = 0;
-uint8_t timer_subticks = 0;
+static uint32_t timer_tick = 0;
+static uint16_t timer_subtick = 0;	// Currently millitick
 
 void pit_handler(regs_t* regs)
 {
-	if(++timer_subticks == 100)
+	if(++timer_subtick == 1000)
 	{
-		timer_ticks++;
-		timer_subticks = 0;
+		timer_subtick = 0;
+		timer_tick++;
 	}
-	if(timer_ticks==0xFFFFFFFF)
-		panic("Max ticks reached");
+	if(timer_tick==0xFFFFFFFF)
+		panic("Max PIT tick reached");
+}
+
+void pit_wait(uint16_t millis)
+{
+	uint16_t target_subtick = (timer_subtick + millis)%1000;
+	uint32_t target_tick = timer_tick + (timer_subtick+millis)/1000;
+
+	while(timer_tick < target_tick);
+	while(timer_subtick < target_subtick);
 }
 
 void pit_init(void)
