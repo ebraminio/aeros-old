@@ -144,8 +144,8 @@ void serial_init(uint8_t com)
 	write_serial(com, '0'+com);
 	put_serial(com, " open\n");
 
-	irq_install_handler(3, serial_handler);
-	irq_install_handler(4, serial_handler);
+	install_irq_handler(3, serial_handler);
+	install_irq_handler(4, serial_handler);
 	unmask_irq(3);
 	unmask_irq(4);
 }
