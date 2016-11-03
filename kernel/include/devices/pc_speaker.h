@@ -17,7 +17,7 @@
 #define SI		494
 
 void pc_speaker_init(void);
-void play_sound(uint32_t freq);
+void play_sound(uint32_t freq, uint16_t duration);
 void shutup(void);
 
 #endif
