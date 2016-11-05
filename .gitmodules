@@ -1,6 +1,0 @@
-[submodule "lib"]
-	path = lib
-	url = https://github.com/Aerath/aeros-libs.git
-[submodule "ports"]
-	path = ports
-	url = https://github.com/Aerath/aeros-ports.git
