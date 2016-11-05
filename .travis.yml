@@ -10,23 +10,48 @@ addons:
       - fakeroot
 
 script:
+  - curl -s 'https://api.travis-ci.org/repos/Aerath/aeros/builds'
+        --header 'accept:application/vnd.travis-ci.2+json'
+        --header 'user-agent:MyClient/1.0.0' > travis-api.yml
+  - export LAST_BUILT_COMMIT_ID=$(cat travis-api.yml | jq '[.builds[]|select(.state=="passed")][0].commit_id')
+  - export LAST_BUILT_COMMIT_SHA=$(cat travis-api.yml | jq -r ".commits[]|select(.id==$LAST_BUILT_COMMIT_ID).sha")
+  - export CHANGED_FILES="$(git diff-tree --no-commit-id --name-only -r $LAST_BUILT_COMMIT_SHA HEAD)"
+  - echo "[TRAVIS] Changed files since last build ($LAST_BUILT_COMMIT_SHA) :"
+  - for f in $CHANGED_FILES; do echo [TRAVIS] $f; done
   - export PATH="$PATH:$HOME/prefix/bin"
-  - make -C toolchain binutils-deb
-  - rm -rf toolchain/build-binutils
-  - make -C toolchain binutils-unpatch
-  - make -C toolchain binutils-install PREFIX="$HOME/prefix"
-  - make -C toolchain gcc-deb
+  - if echo "$CHANGED_FILES" | grep -q "toolchain\|lib/c";
+    then echo [TRAVIS] Testing binutils deb build... &&
+        make -C toolchain binutils-deb &&
+        echo [TRAVIS] Binutils deb build OK. Cleaning... &&
+        rm -rfv toolchain/build-binutils &&
+        make -C toolchain binutils-unpatch &&
+        echo [TRAVIS] Building and installing binutils in local prefix... &&
+        make -C toolchain binutils-install PREFIX="$HOME/prefix" &&
+        echo [TRAVIS] Binutils build OK. &&
+        echo [TRAVIS] Testing GCC deb build... &&
+        make -C toolchain gcc-deb &&
+        echo [TRAVIS] GCC deb build OK &&
+        export TRAVIS_DEPLOY=1;
+    else echo [TRAVIS] Build not required;
+    fi
 
 after_failure:
   - cat toolchain/build-binutils/config.log
   - cat toolchain/build-gcc/config.log
 
+before_deploy:
+  - export TRAVIS_BINUTILS_ARTIFACT=$(ls toolchain/dist/*binutils*.deb)
+  - export TRAVIS_GCC_ARTIFACT=$(ls toolchain/dist/*gcc*.deb)
+
 deploy:
   provider: releases
   api_key:
     secure: iWWzCnVxDklhVRB2ehJJzvS6tKRc5fQKq97DY9cv2CLEbmq+l/GLX6gKGnPF1zQuwDzWo69XilBaOa8GJb6n5+dz0IB8EJMBK/vvOu4mQWEmW7k+upfbnrRM9OZZfZAbYPx7YP6WuF29+b3fz+qQSlHLwa+R+NOJvMFW/BWcva6poJYEbAyI+BT61TNV2wxp7c+F3u3y3fVN4s0wxB6y3uanve3iSJUJ3itHN+Ov0KOC6hlc4J2oOM3gkPncFGzQHsUIoLAGH/Zwu5V1awy4fd/pye4XR9EWenZ/BxEAQf9WXAdajo+SI8ocNZ3KknjWi4dCdqpiBF3nXmjb63P3dgJWwCPYjU5WL2DETF6pGC7GyXn5lLJ3DhZz4RsYNhAi+8pj7CSysXKY2B2B2jB87oemTa6b2TjcR3cfHa4zzJqbR4v2o45KNJvH+A6lCWNHe/GAcOR2/x5cWRXXpOFvK/zlaVHuWOslnW8Si3SgSVUgxal0Pb3Eq1RBAjknFamlm9QXUcivWzqb2hp8TjlP+4VAcVVc2HPWyi5LYQz5XsnQvKqNn++hx18PGOlLoNgrLLc58UytHUg+bZpgd/ldyhKGoLEIgCQRAFbTEbu5jVgg77kJbMixiRaKac+/dlDpG2vv9YV8CjtAGEC9vE5Cfwaw6NIm2+12NXGY56VjJmk=
-  file: dist/*.deb
+  file:
+    - $TRAVIS_BINUTILS_ARTIFACT
+    - $TRAVIS_GCC_ARTIFACT
   skip_cleanup: true
   on:
-    repo: aerath/aeros
+    condition: $TRAVIS_DEPLOY = 1
+    repo: Aerath/aeros
     branch: develop
