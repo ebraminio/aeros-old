@@ -30,17 +30,20 @@ typedef struct
 	void* mem_base;
 	uint32_t iobase;
 	uint8_t irq_num;
+	uint32_t bar[6];
 } pci_device_t;
 
 #define PCI_CLASS_NUM 18
 const char* const pci_classNames[PCI_CLASS_NUM];
 
-extern pci_device_t storage_devices[5];
-extern pci_device_t network_devices[5];
-extern pci_device_t display_devices[5];
-extern pci_device_t serial_bus_devices[5];
+extern pci_device_t* storage_devices[5];
+extern pci_device_t* network_devices[5];
+extern pci_device_t* display_devices[5];
+extern pci_device_t* serial_bus_devices[5];
 
 void pci_init(void);
 uint32_t pci_read(pci_device_t* device, uint32_t reg);
+void pci_write(pci_device_t* device, uint8_t reg, uint32_t value);
+uint32_t get_bar(pci_device_t* device, uint8_t bar_num);
 
 #endif

@@ -1,8 +1,9 @@
 #include "devices/pci.h"
-
 #include <sys/io.h>
 #include <string.h>
 #include "io/log.h"
+#include "devices/pci/ide.h"
+#include <stdlib.h>
 
 #define CONFIG_ADDRESS 0xCF8
 #define CONFIG_DATA 0xCFC
@@ -66,15 +67,15 @@ const char* const pci_classNames[PCI_CLASS_NUM] =
 	"Data Acquisition and Signal Processing Controllers",
 };
 
-pci_device_t storage_devices[5] = {0};
-pci_device_t network_devices[5] = {0};
-pci_device_t display_devices[5] = {0};
-pci_device_t serial_bus_devices[5] = {0};
+pci_device_t* storage_devices[5] = {0};
+pci_device_t* network_devices[5] = {0};
+pci_device_t* display_devices[5] = {0};
+pci_device_t* serial_bus_devices[5] = {0};
 
-static pci_device_t* storage_device_slot = &storage_devices[0];
-static pci_device_t* network_device_slot = &network_devices[0];
-static pci_device_t* display_device_slot = &display_devices[0];
-static pci_device_t* serial_bus_device_slot = &serial_bus_devices[0];
+static pci_device_t** storage_device_slot = &storage_devices[0];
+static pci_device_t** network_device_slot = &network_devices[0];
+static pci_device_t** display_device_slot = &display_devices[0];
+static pci_device_t** serial_bus_device_slot = &serial_bus_devices[0];
 
 uint32_t pci_read(pci_device_t* device, uint32_t reg)
 {
@@ -86,7 +87,7 @@ uint32_t pci_read(pci_device_t* device, uint32_t reg)
 	return data;
 }
 
-static void pci_write(pci_device_t* device, uint8_t reg, uint32_t value)
+void pci_write(pci_device_t* device, uint8_t reg, uint32_t value)
 {
 	outl(CONFIG_ADDRESS, PCI_ADDR(device, reg));
 	outl(CONFIG_DATA, value);
@@ -100,15 +101,15 @@ static uint32_t get_ids(pci_device_t* device)
 	return ids;
 }
 
-/*static uint32_t get_bar(pci_device_t* device, uint8_t bar_num)
+uint32_t get_bar(pci_device_t* device, uint8_t bar_num)
 {
-    device->header_type = pci_read(device, HEADER_TYPE);
+	device->header_type = pci_read(device, HEADER_TYPE);
 
-    if(bar_num>6 || device->header_type>1 || (device->header_type==1 && bar_num>1))
-        panic("Invalid BAR %d on PCI %d.%d.%d",
-                bar_num, device->bus, device->device, device->func);
-    return pci_read(device, BAR0+(4*bar_num)<<0x18);
-}*/
+	if(bar_num>6 || device->header_type>1 || (device->header_type==1 && bar_num>1))
+		panic("Invalid BAR %d on PCI %d.%d.%d",
+			bar_num, device->bus, device->device, device->func);
+	return device->bar[bar_num] = pci_read(device, BAR0+((4*bar_num)<<0x18));
+}
 
 static void set_status(pci_device_t* device, uint16_t status)
 {
@@ -133,15 +134,25 @@ static void check_func(pci_device_t* device)
 			{
 				case IDE_CONTROLLER:
 					if(storage_device_slot)
-						pcicpy(storage_device_slot++, device);
+					{
+						*storage_device_slot = malloc(sizeof(ide_device_t));
+						pcicpy(*storage_device_slot, device);
+						ide_init((ide_device_t*)*(storage_device_slot++));
+					}
 					break;
 				case ATA_CONTROLLER:
 					if(storage_device_slot)
-						pcicpy(storage_device_slot++, device);
+					{
+						*storage_device_slot = malloc(sizeof(pci_device_t));
+						pcicpy(*(storage_device_slot++), device);
+					}
 					break;
 				case SATA_CONTROLLER:
 					if(storage_device_slot)
-						pcicpy(storage_device_slot++, device);
+					{
+						*storage_device_slot = malloc(sizeof(pci_device_t));
+						pcicpy(*(storage_device_slot++), device);
+					}
 					break;
 			}
 			if(storage_device_slot > &storage_devices[sizeof(storage_devices)-1])
@@ -152,7 +163,10 @@ static void check_func(pci_device_t* device)
 			{
 				case ETHERNET_CONTROLLER:
 					if(network_device_slot)
-						pcicpy(network_device_slot++, device);
+					{
+						*network_device_slot = malloc(sizeof(pci_device_t));
+						pcicpy(*(network_device_slot++), device);
+					}
 					break;
 			}
 			if(network_device_slot > &network_devices[sizeof(network_devices)-1])
@@ -163,7 +177,10 @@ static void check_func(pci_device_t* device)
 			{
 				case VGA_CONTROLLER:
 					if(display_device_slot)
-						pcicpy(display_device_slot++, device);
+					{
+						*display_device_slot = malloc(sizeof(pci_device_t));
+						pcicpy(*(display_device_slot++), device);
+					}
 					break;
 			}
 			if(display_device_slot > &display_devices[sizeof(display_devices)-1])
@@ -193,7 +210,10 @@ static void check_func(pci_device_t* device)
 			{
 				case USB_CONTROLLER:
 					if(serial_bus_device_slot)
-						pcicpy(serial_bus_device_slot++, device);
+					{
+						*serial_bus_device_slot = malloc(sizeof(pci_device_t));
+						pcicpy(*(serial_bus_device_slot++), device);
+					}
 					break;
 			}
 			if(serial_bus_device_slot > &serial_bus_devices[sizeof(serial_bus_devices)-1])
@@ -204,7 +224,10 @@ static void check_func(pci_device_t* device)
 			{
 				default:
 					if(network_device_slot)
-						pcicpy(network_device_slot++, device);
+					{
+						*network_device_slot = malloc(sizeof(pci_device_t));
+						pcicpy(*(network_device_slot++), device);
+					}
 			}
 			if(network_device_slot > &network_devices[sizeof(network_devices)-1])
 				network_device_slot = NULL;
