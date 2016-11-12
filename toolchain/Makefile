@@ -58,8 +58,6 @@ binutils-%/configure: binutils-%.tar.gz
 
 gcc-%/configure: gcc-%.tar.gz
 	tar xzf $<
-	git clone https://github.com/giuseppe/gccbrainfuck.git
-	ln -s gccbrainfuck $(subst configure,gcc/brainfuck,$@)
 
 build-binutils/Makefile: automake_present binutils-$(BINUTILS_VERSION)/configure patches/binutils-$(BINUTILS_VERSION).patch
 ifeq ($(NO_AUTOMAKE),1)

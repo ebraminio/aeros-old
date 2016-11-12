@@ -1,6 +1,6 @@
 diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/config.sub gcc-6.1.0/config.sub
 --- gcc-6.1.0-original/config.sub	2015-12-31 22:13:28.000000000 +0100
-+++ gcc-6.1.0/config.sub	2016-08-13 04:38:17.353573934 +0200
++++ gcc-6.1.0/config.sub	2016-11-12 22:39:39.146061481 +0100
 @@ -1399,7 +1399,7 @@
  	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
  	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
@@ -12,7 +12,7 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/co
  	-qnx*)
 diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/fixincludes/mkfixinc.sh gcc-6.1.0/fixincludes/mkfixinc.sh
 --- gcc-6.1.0-original/fixincludes/mkfixinc.sh	2015-04-22 16:18:16.000000000 +0200
-+++ gcc-6.1.0/fixincludes/mkfixinc.sh	2016-08-13 04:39:28.482274294 +0200
++++ gcc-6.1.0/fixincludes/mkfixinc.sh	2016-11-12 22:39:39.157261586 +0100
 @@ -11,6 +11,7 @@
  
  # Check for special fix rules for particular targets
@@ -21,9 +21,505 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/fi
      i?86-*-cygwin* | \
      i?86-*-mingw32* | \
      x86_64-*-mingw32* | \
+diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/brainfuck/brainfuck1.c gcc-6.1.0/gcc/brainfuck/brainfuck1.c
+--- gcc-6.1.0-original/gcc/brainfuck/brainfuck1.c	1970-01-01 01:00:00.000000000 +0100
++++ gcc-6.1.0/gcc/brainfuck/brainfuck1.c	2016-11-12 23:06:21.849403024 +0100
+@@ -0,0 +1,370 @@
++#include "config.h"
++#include "system.h"
++#include "ansidecl.h"
++
++#include "coretypes.h"
++#include "tree.h"
++#include "tree-iterator.h"
++#include "dumpfile.h"
++#include "gimplify.h"
++
++#include "opts.h"
++#include "options.h"
++#include "flags.h"
++
++#include "diagnostic.h"
++
++#include "toplev.h"
++#include "langhooks.h"
++#include "langhooks-def.h"
++
++#include "debug.h"
++
++#include "vec.h"
++
++#include "ggc.h"
++#include "convert.h"
++#include "target.h"
++
++#include "cgraph.h"
++
++#include "stringpool.h"
++#include "fold-const.h"
++#include "function.h"
++
++struct GTY(()) lang_decl
++{
++	char dummy;
++};
++
++struct GTY(()) lang_type
++{
++	char dummy;
++};
++
++struct GTY(()) language_function
++{
++	char dummy;
++};
++
++struct GTY(()) lang_identifier
++{
++	struct tree_identifier common;
++};
++
++union GTY((desc ("0"), chain_next ("(union lang_tree_node *) TREE_CHAIN (&%h.generic)")))
++lang_tree_node
++{
++	union tree_node GTY((tag ("0"), desc ("tree_node_structure (&%h)"))) generic;
++};
++
++tree global_decls = NULL_TREE;
++
++struct GTY(()) bf_op
++{
++	char code;
++	source_location loc;
++};
++
++typedef struct bf_op bf_op_t;
++
++unsigned int brainfuck_option_lang_mask(void)
++{
++	return CL_brainfuck;
++}
++
++bool brainfuck_init(void)
++{
++	// Build common trees, like integer types
++	build_common_tree_nodes (false);
++	return true;
++}
++
++// builtin, function, name, type
++#define BUILTIN_FUNC(n,t) build_decl(BUILTINS_LOCATION, FUNCTION_DECL, get_identifier(n), t);
++
++// Create expr 'p_decl =  calloc(30000, 1);'
++static tree build_calloc_expr(tree p_decl)
++{
++	tree fn_type = build_function_type(ptr_type_node, NULL_TREE);
++	tree fn_decl = BUILTIN_FUNC("calloc", fn_type);
++	DECL_EXTERNAL(fn_decl) = true;
++	TREE_PUBLIC(fn_decl) = true;
++
++	tree call_expr = build_call_expr(fn_decl, 2,
++			build_int_cst(size_type_node, 30000),
++			build_int_cst(size_type_node, 1));
++
++	return build2(MODIFY_EXPR, ptr_type_node, p_decl, call_expr);
++}
++
++static void append_bf_code(vec<bf_op_t>* code, tree p_decl, tree* main_stmts)
++{
++	vec<tree> blocks = vNULL;
++	blocks.safe_push(*main_stmts);
++
++	// Regulary used constants
++	tree one = build_int_cst(char_type_node, 1);
++
++	tree deref_expr = build1(INDIRECT_REF, char_type_node, p_decl);
++	tree test_expr = build2(EQ_EXPR, integer_type_node, deref_expr,
++			build_int_cst(char_type_node, 0));
++
++	tree getchar_type = build_function_type(integer_type_node, NULL_TREE);
++	tree getchar_decl = BUILTIN_FUNC("getchar", getchar_type);
++	tree call_get = build_call_expr(getchar_decl, 0);
++
++	tree putchar_type = build_function_type(integer_type_node, NULL_TREE);
++	tree putchar_decl = BUILTIN_FUNC("putchar", putchar_type);
++
++	int ix;
++	bf_op_t* cmd;
++	FOR_EACH_VEC_ELT(*code, ix, cmd)
++	{
++		tree stmt;
++		switch(cmd->code)
++		{
++			case '+':
++				stmt = build2(PREINCREMENT_EXPR, char_type_node, deref_expr, one);
++				break;
++			case '-':
++				stmt = build2(PREDECREMENT_EXPR, char_type_node, deref_expr, one);
++				break;
++			case '>':
++				stmt = build2(PREINCREMENT_EXPR, ptr_type_node, p_decl, one);
++				break;
++			case '<':
++				stmt = build2(PREDECREMENT_EXPR, ptr_type_node, p_decl, one);
++				break;
++			case ',':
++				stmt = build2(MODIFY_EXPR, char_type_node, deref_expr, call_get);
++				break;
++			case '.':
++				stmt = build_call_expr(putchar_decl, 1, deref_expr);
++				break;
++			case '[':
++				blocks.safe_push(alloc_stmt_list());
++				stmt = build1(EXIT_EXPR, void_type_node, test_expr);
++				break;
++			case ']':
++				stmt = build1(LOOP_EXPR, void_type_node, blocks.pop());
++				break;
++			default:
++				gcc_unreachable();
++		}
++		append_to_statement_list(stmt, &blocks.last());
++	}
++
++	*main_stmts = blocks.last();
++}
++
++static tree build_main_func(vec<bf_op_t>* code)
++{
++	// int, unspecified : int()
++	tree main_type = build_function_type(integer_type_node, NULL_TREE);
++	tree main_decl = BUILTIN_FUNC("main", main_type);
++	DECL_CONTEXT(main_decl) = NULL_TREE;	// File scope
++	TREE_STATIC(main_decl) = true;
++	TREE_PUBLIC(main_decl) = true;
++	DECL_ARGUMENTS(main_decl) = NULL_TREE;
++
++	// builtin, return variable, no name, typeof(main)
++	tree main_ret = build_decl(BUILTINS_LOCATION, RESULT_DECL, NULL_TREE, TREE_TYPE(main_type));
++	DECL_CONTEXT(main_ret) = main_decl;	// main() scope
++	DECL_ARTIFICIAL(main_ret) = true;	// compiler generated
++	DECL_IGNORED_P(main_ret) = true;	// No debug sym
++
++	DECL_RESULT(main_decl) = main_ret;
++
++	// Variables : just the tape
++	tree p_decl = build_decl(BUILTINS_LOCATION, VAR_DECL, NULL_TREE,
++			build_pointer_type(char_type_node));
++
++	// main's block (represent local scope)
++	tree main_bl = build_block(p_decl, NULL_TREE, main_decl, NULL_TREE);
++	DECL_INITIAL(main_decl) = main_bl;
++	TREE_USED(main_bl) = true;
++
++	// Statements tree
++	tree bind = build3(BIND_EXPR, void_type_node, BLOCK_VARS(main_bl), NULL_TREE, main_bl);
++	// Do not optimize away
++	TREE_SIDE_EFFECTS(bind) = true;
++
++	// Statements list
++	tree main_stmts = alloc_stmt_list();
++
++	// Initialize the tape
++	append_to_statement_list(build_calloc_expr(p_decl), &main_stmts);
++
++	// Actual bf code
++	append_bf_code(code, p_decl, &main_stmts);
++
++	// return
++	tree main_set_ret = build2(MODIFY_EXPR, TREE_TYPE(main_ret),main_ret,
++			build_int_cst(integer_type_node, 0));
++	TREE_USED(main_set_ret) = true;
++	tree main_ret_expr = build1(RETURN_EXPR, void_type_node, main_set_ret);
++	append_to_statement_list(main_ret_expr, &main_stmts);
++
++	// Insert code in main body's block
++	BIND_EXPR_BODY(bind) = main_stmts;
++	// Bind block to main func
++	DECL_SAVED_TREE(main_decl) = bind;
++
++	return main_decl;
++}
++
++static bool read_check_syntax(const char* fname, vec<bf_op_t>* file_data)
++{
++	unsigned int line = 0, column = 0;
++	linemap_add(line_table, LC_ENTER, 0, fname, 1);
++	linemap_line_start(line_table, ++line, 0);
++
++	FILE* in = fopen(fname, "r");
++	if(in == NULL)
++		fatal_error(linemap_position_for_column(line_table, column),
++			"Can't open input file %s", fname);
++
++	bf_op_t cur_instr;
++	bool result = true;
++
++	vec<source_location> open_brackets = vNULL;
++
++	int c;
++	while((c = fgetc(in)) != EOF)
++	{
++		column++;
++		switch(c)
++		{
++			case '\n':
++				linemap_line_start(line_table, ++line, 0);
++				column = 0;
++				break;
++
++			case '+':
++			case '-':
++			case '<':
++			case '>':
++			case ',':
++			case '.':
++			case '[':
++			case ']':
++				cur_instr.code = c;
++				cur_instr.loc = linemap_position_for_column(line_table, column);
++
++				if(c == '[')
++					open_brackets.safe_push(cur_instr.loc);
++				else if(c == ']')
++				{
++					if(!open_brackets.length())
++					{
++						error_at(cur_instr.loc, "Unmatched ']'");
++						result = false;
++					}
++					else open_brackets.pop();
++				}
++
++				file_data->safe_push(cur_instr);
++		}
++	}
++
++	if(open_brackets.length())
++	{
++		unsigned int ix;
++		source_location loc;
++		FOR_EACH_VEC_ELT(open_brackets, ix, loc)
++			error_at(loc, "Unmatched '['");
++		result = false;
++	}
++
++	fclose(in);
++	return result;
++}
++
++void brainfuck_parse_file(void)
++{
++	vec<bf_op_t> file_data = vNULL;
++	if(!read_check_syntax(in_fnames[0], &file_data))
++		return;
++
++	global_decls = chainon(build_main_func(&file_data), global_decls);
++
++	FILE* tu_stream = dump_begin(TDI_tu, NULL);
++	if(tu_stream)
++	{
++		dump_node(global_decls, 0, tu_stream);
++		dump_end(TDI_tu, tu_stream);
++	}
++	// Prepare declarations for middle-end
++	for(tree t = global_decls; t; t=TREE_CHAIN(t))
++	{
++		gimplify_function_tree(t);
++		cgraph_node::finalize_function(t, false);
++	}
++}
++
++// Unused. Call unreachable. Dump stacktrace and terminate compilation
++
++bool brainfuck_global_bindings_p(void)
++{
++	gcc_unreachable ();
++}
++
++tree brainfuck_pushdecl(tree decl ATTRIBUTE_UNUSED)
++{
++	gcc_unreachable ();
++}
++
++tree brainfuck_getdecls (void)
++{
++	return global_decls;
++}
++
++// Almost unused. May be called with optimizations
++
++tree brainfuck_type_for_mode(enum machine_mode mode, int unsignedp)
++{
++	if(mode == QImode)
++		return unsignedp ? unsigned_char_type_node : signed_char_type_node;
++	gcc_unreachable ();
++}
++
++tree brainfuck_type_for_size(unsigned precision, int unsignedp)
++{
++	if(precision==8)
++		return unsignedp ? unsigned_char_type_node : signed_char_type_node;
++	gcc_unreachable ();
++}
++
++#undef LANG_HOOKS_NAME
++#define LANG_HOOKS_NAME "Aerath Brainfuck"
++
++#undef LANG_HOOKS_OPTION_LANG_MASK
++#define LANG_HOOKS_OPTION_LANG_MASK brainfuck_option_lang_mask
++
++#undef LANG_HOOKS_INIT
++#define LANG_HOOKS_INIT brainfuck_init
++
++#undef LANG_HOOKS_PARSE_FILE
++#define LANG_HOOKS_PARSE_FILE brainfuck_parse_file
++
++#undef LANG_HOOKS_GLOBAL_BINDINGS_P
++#define LANG_HOOKS_GLOBAL_BINDINGS_P brainfuck_global_bindings_p
++
++#undef LANG_HOOKS_PUSHDECL
++#define LANG_HOOKS_PUSHDECL brainfuck_pushdecl
++
++#undef LANG_HOOKS_GETDECLS
++#define LANG_HOOKS_GETDECLS brainfuck_getdecls
++
++#undef LANG_HOOKS_TYPE_FOR_MODE
++#define LANG_HOOKS_TYPE_FOR_MODE brainfuck_type_for_mode
++
++#undef LANG_HOOKS_TYPE_FOR_SIZE
++#define LANG_HOOKS_TYPE_FOR_SIZE brainfuck_type_for_size
++
++struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
++
++// Include GCC stuff from GCC generated headers
++#include "gt-brainfuck-brainfuck1.h"
++#include "gtype-brainfuck.h"
+diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/brainfuck/brainfuckspec.c gcc-6.1.0/gcc/brainfuck/brainfuckspec.c
+--- gcc-6.1.0-original/gcc/brainfuck/brainfuckspec.c	1970-01-01 01:00:00.000000000 +0100
++++ gcc-6.1.0/gcc/brainfuck/brainfuckspec.c	2016-11-12 19:47:22.181305553 +0100
+@@ -0,0 +1,11 @@
++void lang_specific_driver(struct cl_decoded_option** in_decoded_options,
++		unsigned int* in_decoded_options_count, int* in_added_libraries)
++{
++}
++
++int lang_specific_pre_link(void)
++{
++	return 0;
++}
++
++int lang_specific_extra_outfiles = 0;
+\ Pas de fin de ligne à la fin du fichier
+diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/brainfuck/config-lang.in gcc-6.1.0/gcc/brainfuck/config-lang.in
+--- gcc-6.1.0-original/gcc/brainfuck/config-lang.in	1970-01-01 01:00:00.000000000 +0100
++++ gcc-6.1.0/gcc/brainfuck/config-lang.in	2016-11-12 19:47:22.181305553 +0100
+@@ -0,0 +1,3 @@
++language="brainfuck"
++compilers="brainfuck1\$(exeext)"
++gtfiles="\$(srcdir)/brainfuck/brainfuck1.c"
+\ Pas de fin de ligne à la fin du fichier
+diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/brainfuck/lang.opt gcc-6.1.0/gcc/brainfuck/lang.opt
+--- gcc-6.1.0-original/gcc/brainfuck/lang.opt	1970-01-01 01:00:00.000000000 +0100
++++ gcc-6.1.0/gcc/brainfuck/lang.opt	2016-11-12 19:54:02.176860106 +0100
+@@ -0,0 +1,2 @@
++Language
++brainfuck
+\ Pas de fin de ligne à la fin du fichier
+diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/brainfuck/lang-specs.h gcc-6.1.0/gcc/brainfuck/lang-specs.h
+--- gcc-6.1.0-original/gcc/brainfuck/lang-specs.h	1970-01-01 01:00:00.000000000 +0100
++++ gcc-6.1.0/gcc/brainfuck/lang-specs.h	2016-11-12 19:53:28.837361170 +0100
+@@ -0,0 +1,3 @@
++{".bf" /*ext*/, "@brainfuck" /*rule*/, 0, 0, 0},
++{"@brainfuck" /*rule*/, "brainfuckf1 %(cc1_options) %i %{!fsyntax-only:%(invoke_as)}" /*cmd*/, 0, 0, 0},
++// @rule is also used with gcc -x rule
+\ Pas de fin de ligne à la fin du fichier
+diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/brainfuck/Make-lang.in gcc-6.1.0/gcc/brainfuck/Make-lang.in
+--- gcc-6.1.0-original/gcc/brainfuck/Make-lang.in	1970-01-01 01:00:00.000000000 +0100
++++ gcc-6.1.0/gcc/brainfuck/Make-lang.in	2016-11-12 23:08:33.650538753 +0100
+@@ -0,0 +1,72 @@
++GCCBRAINFUCK_INSTALL_NAME := $(shell echo gccbrainfuck|sed '$(program_transform_name)')
++GCCBRAINFUCK_TARGET_INSTALL_NAME := $(target_noncanonical)-$(shell echo gccbrainfuck|sed '$(program_transform_name)')
++
++.PHONY: brainfuck
++
++brainfuck: brainfuck1$(exeext)
++
++GCCBRAINFUCK_OBJS = $(GCC_OBJS) brainfuck/brainfuckspec.o $(END)
++
++gccbrainfuck$(exeext): $(GCCBRAINFUCK_OBJS) $(EXTRA_GCC_OBJS) libcommon-target.a $(LIBDEPS)
++	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
++		$(GCCBRAINFUCK_OBJS) $(EXTRA_GCC_OBJS) libcommon-target.a \
++		$(EXTRA_GCC_LIBS) $(LIBS)
++
++brainfuck_OBJS = brainfuck/brainfuck1.o $(END)
++
++brainfuck1$(exeext): attribs.o $(brainfuck_OBJS) $(BACKEND) $(LIBDEPS)
++	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
++		attribs.o $(brainfuck_OBJS) $(BACKEND) $(LIBS) $(BACKENDLIBS)
++
++brainfuck.all.cross:
++brainfuck.start.encap: gccbrainfuck$(exeext)
++brainfuck.rest.encap:
++brainfuck.tags:
++brainfuck.info:
++brainfuck.dvi:
++brainfuck.pdf:
++brainfuck.html:
++brainfuck.man:
++
++brainfuck.install-common: installdirs gccbrainfuck$(exeext)
++	$(RM) -f $(DESTDIR)$(bindir)/$(GCCBRAINFUCK_INSTALL_NAME)$(exeext)
++	$(INSTALL_PROGRAM) gccbrainfuck$(exeext) \
++		$(DESTDIR)$(bindir)/$(GCCBRAINFUCK_INSTALL_NAME)$(exeext)
++	$(RM) -f $(DESTDIR)$(bindir)/$(GCCBRAINFUCK_TARGET_INSTALL_NAME)$(exeext); \
++		( cd $(DESTDIR)$(bindir) && \
++		$(LN) $(GCCBRAINFUCK_INSTALL_NAME)$(exeext) $(GCCBRAINFUCK_TARGET_INSTALL_NAME)$(exeext) )
++
++brainfuck.install-info:
++brainfuck.install-man:
++brainfuck.install-plugin:
++brainfuck.srcextra:
++brainfuck.srcinfo:
++brainfuck.srcman:
++brainfuck.uninstall:
++	$(RM) -f gccbrainfuck$(exeext) brainfuck1$(exeext)
++	$(RM) f $(brainfuck_OBJS)
++
++brainfuck.mostlyclean:
++	$(RM) brainfuck/brainfuck1.o
++
++brainfuck.clean: brainfuck.mostlyclean
++brainfuck.distclean: brainfuck.clean
++brainfuck.maintainer-clean: brainfuck.distclean
++
++brainfuck.stage1: stage1-start
++	mv brainfuck/*$(objext) stage1/brainfuck
++
++brainfuck.stage2: stage2-start
++	mv brainfuck/*$(objext) stage2/brainfuck
++
++brainfuck.stage3: stage3-start
++	mv brainfuck/*$(objext) stage3/brainfuck
++
++brainfuck.stage4: stage4-start
++	mv brainfuck/*$(objext) stage4/brainfuck
++
++brainfuck.stageprofile: stageprofile-start
++	mv brainfuck/*$(objext) stageprofile/brainfuck
++
++brainfuck.stagefeedback: stagefeedback-start
++	mv brainfuck/*$(objext) stagefeedback/brainfuck
+\ Pas de fin de ligne à la fin du fichier
+diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/brainfuck/README.md gcc-6.1.0/gcc/brainfuck/README.md
+--- gcc-6.1.0-original/gcc/brainfuck/README.md	1970-01-01 01:00:00.000000000 +0100
++++ gcc-6.1.0/gcc/brainfuck/README.md	2016-11-12 20:00:56.334197488 +0100
+@@ -0,0 +1 @@
++Written with the help of http://cpjsmith.co.uk/gccfe and http://thinkingeek.com/2016/01/06/tiny-gcc-front-part-1
+\ Pas de fin de ligne à la fin du fichier
 diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/config/aeros.h gcc-6.1.0/gcc/config/aeros.h
 --- gcc-6.1.0-original/gcc/config/aeros.h	1970-01-01 01:00:00.000000000 +0100
-+++ gcc-6.1.0/gcc/config/aeros.h	2016-08-13 17:44:10.486482441 +0200
++++ gcc-6.1.0/gcc/config/aeros.h	2016-11-12 22:39:39.230862281 +0100
 @@ -0,0 +1,31 @@
 +/* Useful if you wish to make target-specific gcc changes. */
 +#undef TARGET_AEROS
@@ -58,7 +554,7 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gc
 +  } while(0);
 diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/config.gcc gcc-6.1.0/gcc/config.gcc
 --- gcc-6.1.0-original/gcc/config.gcc	2016-04-11 12:14:59.000000000 +0200
-+++ gcc-6.1.0/gcc/config.gcc	2016-08-13 04:44:25.284958939 +0200
++++ gcc-6.1.0/gcc/config.gcc	2016-11-12 22:39:39.240462372 +0100
 @@ -612,6 +612,11 @@
  
  # Common parts for widely ported systems.
@@ -83,7 +579,7 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gc
  	tm_file="${tm_file} aarch64/aarch64-elf.h aarch64/aarch64-elf-raw.h"
 diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/libgcc/config.host gcc-6.1.0/libgcc/config.host
 --- gcc-6.1.0-original/libgcc/config.host	2016-02-26 21:02:28.000000000 +0100
-+++ gcc-6.1.0/libgcc/config.host	2016-08-13 04:46:14.381990721 +0200
++++ gcc-6.1.0/libgcc/config.host	2016-11-12 22:39:39.294862885 +0100
 @@ -327,6 +327,10 @@
  esac
  
@@ -97,7 +593,7 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/li
  	extra_parts="$extra_parts crtfastmath.o"
 diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/libstdc++-v3/crossconfig.m4 gcc-6.1.0/libstdc++-v3/crossconfig.m4
 --- gcc-6.1.0-original/libstdc++-v3/crossconfig.m4	2015-10-12 00:34:28.000000000 +0200
-+++ gcc-6.1.0/libstdc++-v3/crossconfig.m4	2016-08-13 04:47:29.666712909 +0200
++++ gcc-6.1.0/libstdc++-v3/crossconfig.m4	2016-11-12 22:39:39.381263700 +0100
 @@ -5,6 +5,12 @@
  AC_DEFUN([GLIBCXX_CROSSCONFIG],[
  # Base decisions on target environment.
