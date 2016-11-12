@@ -13,7 +13,7 @@ GCC_PACKAGE = $(TARGET)-gcc-$(GCC_VERSION)-$(PACKAGE_VERSION)
 PACKAGE_VERSION = 0.1-$(shell date +'%Y%m%d')
 
 BINUTILS_CONFIG_ARGS = --target=$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix="$(PREFIX)" --disable-nls --disable-werror
-GCC_CONFIG_ARGS = --target=$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix="$(PREFIX)" --enable-languages=c,c++ --disable-nls --disable-werror --with-isl
+GCC_CONFIG_ARGS = --target=$(TARGET) --with-build-sysroot="$(SYSROOT)" --prefix="$(PREFIX)" --enable-languages=c,c++,brainfuck --disable-nls --disable-werror --with-isl
 
 LINTIAN_FLAGS = --suppress-tags embedded-library,no-copyright-file,extended-description-is-empty,missing-depends-line
 
@@ -58,6 +58,8 @@ binutils-%/configure: binutils-%.tar.gz
 
 gcc-%/configure: gcc-%.tar.gz
 	tar xzf $<
+	git clone https://github.com/giuseppe/gccbrainfuck.git
+	ln -s gccbrainfuck $(subst configure,gcc/brainfuck,$@)
 
 build-binutils/Makefile: automake_present binutils-$(BINUTILS_VERSION)/configure patches/binutils-$(BINUTILS_VERSION).patch
 ifeq ($(NO_AUTOMAKE),1)
