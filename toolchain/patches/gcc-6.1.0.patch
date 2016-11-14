@@ -437,9 +437,9 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gc
 diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gcc/brainfuck/Make-lang.in gcc-6.1.0/gcc/brainfuck/Make-lang.in
 --- gcc-6.1.0-original/gcc/brainfuck/Make-lang.in	1970-01-01 01:00:00.000000000 +0100
 +++ gcc-6.1.0/gcc/brainfuck/Make-lang.in	2016-11-12 23:08:33.650538753 +0100
-@@ -0,0 +1,72 @@
-+GCCBRAINFUCK_INSTALL_NAME := $(shell echo gccbrainfuck|sed '$(program_transform_name)')
-+GCCBRAINFUCK_TARGET_INSTALL_NAME := $(target_noncanonical)-$(shell echo gccbrainfuck|sed '$(program_transform_name)')
+@@ -0,0 +1,74 @@
++GCCBRAINFUCK_INSTALL_NAME := $(shell echo gcc-brainfuck|sed '$(program_transform_name)')
++GCCBRAINFUCK_TARGET_INSTALL_NAME := $(target_noncanonical)-$(shell echo gcc-brainfuck|sed '$(program_transform_name)')
 +
 +.PHONY: brainfuck
 +
@@ -447,7 +447,7 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gc
 +
 +GCCBRAINFUCK_OBJS = $(GCC_OBJS) brainfuck/brainfuckspec.o $(END)
 +
-+gccbrainfuck$(exeext): $(GCCBRAINFUCK_OBJS) $(EXTRA_GCC_OBJS) libcommon-target.a $(LIBDEPS)
++gcc-brainfuck$(exeext): $(GCCBRAINFUCK_OBJS) $(EXTRA_GCC_OBJS) libcommon-target.a $(LIBDEPS)
 +	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
 +		$(GCCBRAINFUCK_OBJS) $(EXTRA_GCC_OBJS) libcommon-target.a \
 +		$(EXTRA_GCC_LIBS) $(LIBS)
@@ -458,8 +458,17 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gc
 +	+$(LINKER) $(ALL_LINKERFLAGS) $(LDFLAGS) -o $@ \
 +		attribs.o $(brainfuck_OBJS) $(BACKEND) $(LIBS) $(BACKENDLIBS)
 +
++gcc-brainfuck-install: gcc-brainfuck$(exeext)
++	$(RM) -f $(DESTDIR)$(bindir)/$(GCCBRAINFUCK_INSTALL_NAME)$(exeext)
++	$(INSTALL_PROGRAM) gcc-brainfuck$(exeext) \
++		$(DESTDIR)$(bindir)/$(GCCBRAINFUCK_INSTALL_NAME)$(exeext)
++	$(RM) -f $(DESTDIR)$(bindir)/$(GCCBRAINFUCK_TARGET_INSTALL_NAME)$(exeext); \
++		( cd $(DESTDIR)$(bindir) && \
++		$(LN) $(GCCBRAINFUCK_INSTALL_NAME)$(exeext) $(GCCBRAINFUCK_TARGET_INSTALL_NAME)$(exeext) )
++
 +brainfuck.all.cross:
-+brainfuck.start.encap: gccbrainfuck$(exeext)
++#brainfuck.start.encap: gcc-brainfuck$(exeext)
++brainfuck.start.encap:
 +brainfuck.rest.encap:
 +brainfuck.tags:
 +brainfuck.info:
@@ -467,15 +476,7 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gc
 +brainfuck.pdf:
 +brainfuck.html:
 +brainfuck.man:
-+
-+brainfuck.install-common: installdirs gccbrainfuck$(exeext)
-+	$(RM) -f $(DESTDIR)$(bindir)/$(GCCBRAINFUCK_INSTALL_NAME)$(exeext)
-+	$(INSTALL_PROGRAM) gccbrainfuck$(exeext) \
-+		$(DESTDIR)$(bindir)/$(GCCBRAINFUCK_INSTALL_NAME)$(exeext)
-+	$(RM) -f $(DESTDIR)$(bindir)/$(GCCBRAINFUCK_TARGET_INSTALL_NAME)$(exeext); \
-+		( cd $(DESTDIR)$(bindir) && \
-+		$(LN) $(GCCBRAINFUCK_INSTALL_NAME)$(exeext) $(GCCBRAINFUCK_TARGET_INSTALL_NAME)$(exeext) )
-+
++brainfuck.install-common:
 +brainfuck.install-info:
 +brainfuck.install-man:
 +brainfuck.install-plugin:
@@ -483,8 +484,9 @@ diff --no-dereference -Naur -x autom4te.cache -x configure gcc-6.1.0-original/gc
 +brainfuck.srcinfo:
 +brainfuck.srcman:
 +brainfuck.uninstall:
-+	$(RM) -f gccbrainfuck$(exeext) brainfuck1$(exeext)
-+	$(RM) f $(brainfuck_OBJS)
++	$(RM) -f gcc-brainfuck$(exeext)
++	$(RM) -f brainfuck1$(exeext)
++	$(RM) -f $(brainfuck_OBJS)
 +
 +brainfuck.mostlyclean:
 +	$(RM) brainfuck/brainfuck1.o
