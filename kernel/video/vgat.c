@@ -2,6 +2,7 @@
 #include "video/video.h"
 #include <stddef.h>
 #include <string.h>
+#include "mem/vmem.h"
 
 static void vgat_putchar(uint32_t x, uint32_t y, int c, uint32_t color);
 static void vgat_scroll(uint32_t n);
@@ -25,6 +26,7 @@ video_device_t* vgat_init(void *text_buffer, uint16_t width, uint16_t height)
 	video_device->charcell_h = 1;
 	video_device->buffer = text_buffer;
 	video_device->buffer_end = (uint8_t*)text_buffer + width*height * sizeof(uint16_t);
+	IDENTITY_MAP((uintptr_t)text_buffer, width*height * sizeof(uint16_t), true);
 	video_device->fgcolor = VGAT_LIGHT_GREY | VGAT_BLACK<<4;
 	vgat_clear(video_device->fgcolor);
 	return video_device;

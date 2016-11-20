@@ -116,7 +116,7 @@ void kernel_main(unsigned long magic, unsigned long address)
 
 	if(mboot_info->flags & MULTIBOOT_INFO_CMDLINE)
 	{
-		IDENTITY_MAP(mboot_info->cmdline, 255);	// Arbitrary number
+		IDENTITY_MAP(mboot_info->cmdline, 255, false);	// Arbitrary size
 		printf("\t\tKernel command-line: %s\n", (char*)mboot_info->cmdline);
 	}
 	if(mboot_info->flags & MULTIBOOT_INFO_DRIVE_INFO)

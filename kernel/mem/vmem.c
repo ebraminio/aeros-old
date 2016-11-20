@@ -49,7 +49,7 @@ page_dir_t _page_dir __attribute((aligned(4096))) = {0};
 page_dir_t* page_dir = &_page_dir;
 page_table_t first_page_table __attribute((aligned(4096))) = {0};
 
-void vmap(uintptr_t vstart, uintptr_t pstart, size_t size)
+void vmap(uintptr_t vstart, uintptr_t pstart, size_t size, uint8_t writeable)
 {
 	if(!size)
 		return;
@@ -65,13 +65,13 @@ void vmap(uintptr_t vstart, uintptr_t pstart, size_t size)
 		{
 			uintptr_t table_ptr = (uintptr_t)palloc();
 			dir_entry->table_address = table_ptr>>12;
-			IDENTITY_MAP(table_ptr, PAGE_SIZE);
+			IDENTITY_MAP(table_ptr, PAGE_SIZE, true);
 			memset((void*)table_ptr, 0, PAGE_SIZE);
 		}
 
 		page_table_entry_t* page = &((page_table_t*)(dir_entry->table_address<<12))->pages[(vstart>>12)&0x3FF];
 		page->present = 1;
-		page->writeable = 1;
+		page->writeable = writeable ? 1 : 0;
 		page->page_address = pstart>>12;
 
 		vstart += PAGE_SIZE;
@@ -81,26 +81,32 @@ void vmap(uintptr_t vstart, uintptr_t pstart, size_t size)
 
 extern const void _stack_bottom;
 extern const void _stack_top;
+extern const void _data_start;
+extern const void _data_end;
 
 void vmem_init(void)
 {
 	page_dir->tables[0].table_address = (uintptr_t)&first_page_table>>12;
-	IDENTITY_MAP(0, (size_t)&_end);
-	IDENTITY_MAP((uintptr_t)&_stack_bottom, (uintptr_t)&_stack_top-(uintptr_t)&_stack_bottom);
+	IDENTITY_MAP(0, (size_t)&_end, false);
+	IDENTITY_MAP((uintptr_t)&_data_start, (uintptr_t)&_data_end-(uintptr_t)&_data_start, true);
+	IDENTITY_MAP((uintptr_t)&_stack_bottom, (uintptr_t)&_stack_top-(uintptr_t)&_stack_bottom, true);
 
-	asm ("mov %0, %%cr3"
+	asm("mov %cr0, %eax;"
+		"or $0x10000, %eax;"	// WP: write protect
+		"mov %eax, %cr0");
+	asm("mov %0, %%cr3"
 		::"r" (page_dir));
-	asm ("xchgw %bx, %bx;"
-		 "mov %cr0, %eax;"
-		 "or $0x80000000, %eax;"
-		 "mov %eax, %cr0");
+	asm("xchgw %bx, %bx;"
+		"mov %cr0, %eax;"
+		"or $0x80000000, %eax;"	// PG: paging
+		"mov %eax, %cr0");
 }
 
 int brk(void* addr)
 {
 	while(addr > heap_end)
 	{
-		vmap((uintptr_t)heap_end, (uintptr_t)palloc(), PAGE_SIZE);
+		vmap((uintptr_t)heap_end, (uintptr_t)palloc(), PAGE_SIZE, true);
 		heap_end = (uint8_t*)heap_end + PAGE_SIZE;
 	}
 	return 0;

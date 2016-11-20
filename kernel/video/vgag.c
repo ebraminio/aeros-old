@@ -28,7 +28,7 @@ video_device_t* vgag_init(vbe_controller_t* controller, vbe_mode_t* mode)
 	size_t buf_size = video_device->width * video_device->height \
 		* (video_device->depth/8);
 	video_device->buffer_end = (void*)(mode->frame_buffer+buf_size);
-	IDENTITY_MAP(mode->frame_buffer, buf_size);
+	IDENTITY_MAP(mode->frame_buffer, buf_size, true);
 
 	video_device->graphic_supported = (mode->mode_attributes & VBE_MODE_ATTRIB_GRAPHIC_MODE) != 0;
 	if(!video_device->graphic_supported)

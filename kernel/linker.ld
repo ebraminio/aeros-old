@@ -17,6 +17,7 @@ SECTIONS
 	/* Read-write data (initialized) */
 	.data ALIGN(4K) :
 	{
+		_data_start = .;
 		*(.data)
 	}
 
@@ -25,6 +26,7 @@ SECTIONS
 	{
 		*(COMMON)
 		*(.bss)
+		_data_end = .;
 		. = ALIGN(4K);
 		*(.bootstrap_stack)
 	}
