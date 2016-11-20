@@ -74,7 +74,7 @@ void kernel_main(unsigned long magic, unsigned long address)
 	printf(" RTC");
 	pci_init();
 	printf(" PCI");
-	pc_speaker_init();
+	enable_sound(false);
 	printf(" PC-SPKR");
 	putchar('\n');
 

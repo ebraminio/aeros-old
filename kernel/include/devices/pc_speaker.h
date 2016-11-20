@@ -2,6 +2,7 @@
 #define __DEVICES_PC_SPEAKER_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define DO		261
 #define DO_S	277
@@ -16,8 +17,7 @@
 #define LA_S	466
 #define SI		494
 
-void pc_speaker_init(void);
+void enable_sound(bool enable);
 void play_sound(uint32_t freq, uint16_t duration);
-void shutup(void);
 
 #endif

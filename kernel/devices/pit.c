@@ -39,7 +39,7 @@ void set_pit_freq(uint8_t channel, uint16_t freq)
 	pit_cmd_t cmd = {.bcd=0, .op_mode = OPMODE_SQUARE_WAVE, .acc_mode_lobyte = 1, .acc_mode_hibyte = 1, .channel = channel};
 	outb(PIT_CMD, cmd.numeric);
 
-	uint16_t divisor = PIT_BASE_FREQ/freq;
+	uint16_t divisor = freq ? PIT_BASE_FREQ/freq : 0;
 	outb(PIT_DATA0+channel, divisor & 0xFF);
 	outb(PIT_DATA0+channel, divisor >> 8);
 }
