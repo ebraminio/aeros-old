@@ -19,4 +19,4 @@ LDFLAGS = --sysroot=$(SYSROOT)
 DEBUGFLAGS = -DDEBUG -g
 
 CFLAGS = $(DEBUGFLAGS) -std=gnu99 $(FLAGS)
-ASFLAGS = -c -Iquoteinclude $(DEBUGFLAGS)
+ASFLAGS = -c -iquote include $(DEBUGFLAGS)

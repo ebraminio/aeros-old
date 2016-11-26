@@ -20,7 +20,7 @@ kernel.o: CFLAGS += -DMULTIBOOT1
 boot.o: ASFLAGS += -DMULTIBOOT1
 
 aeros-i686.kernel: $(OBJECTS) linker.ld $(SYSROOT)/usr/lib/libc.a
-	$(CC) -o $@ $(OBJECTS) $(LDFLAGS) -Wl,-d -T linker.ld -ffreestanding -fbuiltin
+	$(CC) -o $@ $(OBJECTS) $(LDFLAGS) $(LDLIBS) -Wl,-d -T linker.ld -ffreestanding -fbuiltin
 
 install: all
 	@mkdir -p $(SYSROOT)/boot/

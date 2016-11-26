@@ -4,7 +4,7 @@
 #define HEAP_MAGIC 0x434F4C4D
 #define PAGE_SIZE 4096
 
-#define HBLK_FIT_IN_PAGE(b,s,p) ((uint8_t*)b+sizeof(heap_block_t)+s<=(uint8_t*)p+PAGE_SIZE)
+#define HBLK_FIT_IN_PAGE(b, s, p) ((uint8_t*)b+sizeof(heap_block_t)+s<=(uint8_t*)p+PAGE_SIZE)
 #define NEXT_HBLK(b) (heap_blk_t*)((uint8_t*)b+sizeof(*b)+b->size)
 
 typedef struct heap_blk

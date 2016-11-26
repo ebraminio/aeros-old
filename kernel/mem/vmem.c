@@ -49,7 +49,7 @@ page_dir_t _page_dir __attribute((aligned(4096))) = {0};
 page_dir_t* page_dir = &_page_dir;
 page_table_t first_page_table __attribute((aligned(4096))) = {0};
 
-void vmap(uintptr_t vstart, uintptr_t pstart, size_t size, uint8_t writeable)
+void vmap(uintptr_t vstart, uintptr_t pstart, size_t size, bool writeable)
 {
 	if(!size)
 		return;
