@@ -58,7 +58,7 @@ deploy:
   on:
     condition: $TRAVIS_DEPLOY = 1
     repo: Aerath/aeros
-    branch: develop
+    branch: feature/elf
 
 cache:
   - apt
