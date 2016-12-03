@@ -13,9 +13,19 @@ script:
   - curl -s 'https://api.travis-ci.org/repos/Aerath/aeros/builds'
         --header 'accept:application/vnd.travis-ci.2+json'
         --header 'user-agent:MyClient/1.0.0' > travis-api.yml
+  - export N=0
   - export LAST_BUILT_COMMIT_ID=$(cat travis-api.yml | jq '[.builds[]|select(.state=="passed")][0].commit_id')
   - export LAST_BUILT_COMMIT_SHA=$(cat travis-api.yml | jq -r ".commits[]|select(.id==$LAST_BUILT_COMMIT_ID).sha")
   - export CHANGED_FILES="$(git diff-tree --no-commit-id --name-only -r $LAST_BUILT_COMMIT_SHA HEAD)"
+  - git show $LAST_BUILT_COMMIT_SHA -q --oneline
+  - while [ $? -eq 128 ];
+    do
+        export LAST_BUILT_COMMIT_ID=$(cat travis-api.yml | jq '[.builds[]|select(.state=="passed")]['$N'].commit_id');
+        export LAST_BUILT_COMMIT_SHA=$(cat travis-api.yml | jq -r ".commits[]|select(.id==$LAST_BUILT_COMMIT_ID).sha");
+        export CHANGED_FILES="$(git diff-tree --no-commit-id --name-only -r $LAST_BUILT_COMMIT_SHA HEAD)";
+        export N=$((N+1));
+        git show $LAST_BUILT_COMMIT_SHA -q --oneline;
+    done
   - echo "[TRAVIS] Changed files since last build ($LAST_BUILT_COMMIT_SHA) :"
   - for f in $CHANGED_FILES; do echo [TRAVIS] $f; done
   - export PATH="$PATH:$HOME/local/bin"
