@@ -18,12 +18,14 @@
 #include "sys/syscalls.h"
 #include "devices/rtc.h"
 #include "devices/pc_speaker.h"
+#include "elf.h"
 
 #define LOG_CPU_SUPPORT(X); if(__builtin_cpu_supports(X)) printf(" "X);
 
-extern const uint8_t _stack_bottom;
-extern const uint8_t _stack_top;
-extern const uint8_t _initial_esp;
+extern const void _end;
+extern const void _stack_bottom;
+extern const void _stack_top;
+extern const void _initial_esp;
 extern void _enter_usermode(void);
 
 __attribute__((noreturn))
@@ -63,6 +65,21 @@ void kernel_main(unsigned long magic, unsigned long address)
 	put_serial(1, " Video");
 
 	nopanic("Serial GDT IDT ACPI PMEM VMEM Video");
+
+	if(mboot_info->flags & MULTIBOOT_INFO_MODS)
+	{
+		struct multiboot_mod_list* mod_list = (struct multiboot_mod_list*)mboot_info->mods_addr;
+		for(uint8_t i=0; i<mboot_info->mods_count; i++)
+		{
+			if(mod_list[i].cmdline+255 > (uintptr_t)&_end)
+				IDENTITY_MAP(mod_list[i].cmdline, 255, false);	// Arbitrary size
+			if(mod_list[i].mod_end > (uintptr_t)&_end)
+				IDENTITY_MAP(mod_list[i].mod_start, mod_list[i].mod_end-mod_list[i].mod_start, true);
+			// Relocation and data sections require writeable
+			int (*entry)(void) = (void*) elf_load((void*)mod_list[i].mod_start);
+			if(entry) entry();
+		}
+	}
 
 	syscalls_init();
 	printf(" Syscalls");
@@ -116,7 +133,8 @@ void kernel_main(unsigned long magic, unsigned long address)
 
 	if(mboot_info->flags & MULTIBOOT_INFO_CMDLINE)
 	{
-		IDENTITY_MAP(mboot_info->cmdline, 255, false);	// Arbitrary size
+		if(mboot_info->cmdline+255 > (uintptr_t)&_end)
+			IDENTITY_MAP(mboot_info->cmdline, 255, false);	// Arbitrary size
 		printf("\t\tKernel command-line: %s\n", (char*)mboot_info->cmdline);
 	}
 	if(mboot_info->flags & MULTIBOOT_INFO_DRIVE_INFO)

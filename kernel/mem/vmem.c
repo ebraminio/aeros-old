@@ -2,6 +2,9 @@
 #include "mem/pmem.h"
 #include <string.h>
 #include <unistd.h>
+#include "io/log.h"
+#include <sys/mman.h>
+#include <errno.h>
 
 #define PAGE_SIZE 4096
 
@@ -59,7 +62,6 @@ void vmap(uintptr_t vstart, uintptr_t pstart, size_t size, bool writeable)
 	{
 		page_dir_entry_t* const dir_entry = &page_dir->tables[vstart>>22];
 
-		dir_entry->present = 1;
 		dir_entry->writeable = 1;
 		if(!dir_entry->table_address)
 		{
@@ -70,9 +72,13 @@ void vmap(uintptr_t vstart, uintptr_t pstart, size_t size, bool writeable)
 		}
 
 		page_table_entry_t* page = &((page_table_t*)(dir_entry->table_address<<12))->pages[(vstart>>12)&0x3FF];
-		page->present = 1;
 		page->writeable = writeable ? 1 : 0;
+		if(page->present)
+			panic("Already used page");
 		page->page_address = pstart>>12;
+		page->present = 1;
+
+		dir_entry->present = 1;
 
 		vstart += PAGE_SIZE;
 		pstart += PAGE_SIZE;
@@ -82,14 +88,12 @@ void vmap(uintptr_t vstart, uintptr_t pstart, size_t size, bool writeable)
 extern const void _stack_bottom;
 extern const void _stack_top;
 extern const void _data_start;
-extern const void _data_end;
 
 void vmem_init(void)
 {
 	page_dir->tables[0].table_address = (uintptr_t)&first_page_table>>12;
 	IDENTITY_MAP(0, (size_t)&_end, false);
-	IDENTITY_MAP((uintptr_t)&_data_start, (uintptr_t)&_data_end-(uintptr_t)&_data_start, true);
-	IDENTITY_MAP((uintptr_t)&_stack_bottom, (uintptr_t)&_stack_top-(uintptr_t)&_stack_bottom, true);
+	mprotect((void*)&_data_start, (uintptr_t)&_end-(uintptr_t)&_data_start, PROT_WRITE);
 
 	asm("mov %cr0, %eax;"
 		"or $0x10000, %eax;"	// WP: write protect
@@ -109,5 +113,37 @@ int brk(void* addr)
 		vmap((uintptr_t)heap_end, (uintptr_t)palloc(), PAGE_SIZE, true);
 		heap_end = (uint8_t*)heap_end + PAGE_SIZE;
 	}
+
+	return 0;
+}
+
+int mprotect(void* addr, size_t len, int prot)
+{
+	if(prot == PROT_NONE)
+	{
+		errno = ENOTSUP;
+		return -1;
+	}
+
+	for(uintptr_t vptr = (uintptr_t)addr; vptr < (uintptr_t)addr+len; vptr += PAGE_SIZE)
+	{
+		page_dir_entry_t* const dir_entry = &page_dir->tables[vptr>>22];
+		if(!dir_entry->present)
+		{
+			errno = ENOMEM;
+			return -1;
+		}
+		// writeable ?
+
+		page_table_entry_t* page = &((page_table_t*)(dir_entry->table_address<<12))->pages[(vptr>>12)&0x3FF];
+		if(!page->present)
+		{
+			errno = ENOMEM;
+			return -1;
+		}
+
+		page->writeable = prot & PROT_WRITE;
+	}
+
 	return 0;
 }
