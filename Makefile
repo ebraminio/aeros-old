@@ -1,4 +1,4 @@
-include config.mk
+$(shell grep "TARGET =\|PHONY" config.mk)
 
 .PHONY: kernel hdd qemu
 
@@ -6,6 +6,30 @@ SYSROOT = $(shell pwd)/sysroot
 QEMUFLAGS = -vga std -serial mon:stdio -soundhw pcspk -net dump,file=netdump.pcap -net nic,model=e1000 -net user,hostfwd=tcp::5555-:5555 -s -S
 
 .DELETE_ON_ERROR: hdd.img
+
+travis:
+	@echo [TRAVIS] Removing \$$HOME/local ...
+	@echo [TRAVIS] Testing binutils deb build...
+	rm -rf $$HOME/local/*
+	make -C toolchain binutils-deb
+	@echo [TRAVIS] Binutils deb build OK
+	#rm -rfv toolchain/build-binutils
+	#make -C toolchain binutils-unpatch
+	@echo [TRAVIS] Installing binutils in local prefix...
+	make -C toolchain binutils-install PREFIX="$$HOME/local"
+	@echo [TRAVIS] Binutils install OK
+	@echo [TRAVIS] Testing GCC deb build...
+	make -C toolchain gcc-deb
+	@echo [TRAVIS] GCC deb build OK
+	@echo [TRAVIS] Installing GCC in local prefix...
+	make -C toolchain gcc-install PREFIX="$$HOME/local"
+	@echo [TRAVIS] GCC install OK
+
+coverity:
+	@echo [TRAVIS] Building libc and libk...
+	PATH="$$PATH:$$HOME/local/bin" make -C lib/c install
+	@echo [TRAVIS] Building kernel...
+	PATH="$$PATH:$$HOME/local/bin" make -C kernel
 
 qemu: hdd.img $(SYSROOT)/boot/aeros-i686.kernel
 	qemu-system-i386 $(QEMUFLAGS) -hda hdd.img -kernel kernel/aeros-i686.kernel

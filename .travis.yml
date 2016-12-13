@@ -1,5 +1,9 @@
 language: c
 
+env:
+  global:
+    - secure: "cbS6v1eLwaqxl9Xc8XNPmA9JEPW/YKtruDOtiJpoQwhsVtnNt0ESnhwoVRtibzZFoX0MNWzBQgLqk8xPJSADp9j93bnu394z04i4rwoLSVIwHHelx5reeeTKaZR2nsO/cdY+KhtUK3pvhrDL0k+L++tDFhgSGlqahD5mnHvX1uhvQPO1mTyFg5/vUgdldvPGqXY9chZzxAHM5aCSyj7To0AkJRA9kN6JNCJVPGskq2YEaiWdOfdEHVpGkoiCE1NuD2Vv4di3dB1bWITO2p/9Gu9yqS4ab9wByl+0UacYjsZMaTLPtXlMJ8oDQCPjM3pBhjTl3r2uvWT7ye+2hz/56TOailsqUOUW866wDHEoW4rKuTg25W5JdUCnN9vxO32gHm3WEObdpen7eGcJKdFFXTXcOGAoiKt6zBMd8dIn05aPc8Uh0ED4qJ8UwG75Sb/Q7wVm8aZ2sMpoGyST0VRWVkF0fwYlC7VCw8T6ek2knypAUiwP5geXB0fx4PYbBFajKJnrc+htMEBKcwQrrW2KE0GV5nAEIup0IhwGZfmrN7hAkZClIQk2N3v1N+b4BJ60McR1W5gowtMxL5VEaCxrCx09UBHb4lE305H8AKRnacwb8vasnBHa24PleLj3V2eb1IjKZFiscG2DnidL+IyOH/WSCuhlZKBwzORrYc8yyWo="
+
 addons:
   apt:
     packages:
@@ -8,6 +12,17 @@ addons:
       - wget
       - lintian
       - fakeroot
+  coverity_scan:
+    project:
+      name: "Aerath/aeros"
+      description: ""
+    notification_email: aerath.aiskurimu@gmail.com
+    build_command_prepend: "if [[ ! -f $HOME/local/bin/i386-aeros-gcc ]]; then make -C toolchain binutils-install PREFIX=$HOME/local && make -C toolchain gcc-install PREFIX=$HOME/local; fi && cov-configure --comptype gcc --compiler $HOME/local/bin/i386-aeros-gcc"
+    build_command: "make coverity"
+    branch_pattern: coverity_scan
+
+before_install:
+  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 script:
   - curl -s 'https://api.travis-ci.org/repos/Aerath/aeros/builds'
@@ -20,20 +35,7 @@ script:
   - for f in $CHANGED_FILES; do echo [TRAVIS] $f; done
   - export PATH="$PATH:$HOME/local/bin"
   - if echo "$CHANGED_FILES" | grep -q ".travis.yml\|toolchain\|lib/c";
-    then echo [TRAVIS] Testing binutils deb build... &&
-        echo [TRAVIS] Removing \$HOME/local ... &&
-        rm -rf $HOME/local/* &&
-        make -C toolchain binutils-deb &&
-        echo [TRAVIS] Binutils deb build OK. Cleaning... &&
-        rm -rfv toolchain/build-binutils &&
-        make -C toolchain binutils-unpatch &&
-        echo [TRAVIS] Building and installing binutils in local prefix... &&
-        make -C toolchain binutils-install PREFIX="$HOME/local" &&
-        echo [TRAVIS] Binutils build OK. &&
-        echo [TRAVIS] Testing GCC deb build... &&
-        make -C toolchain gcc-deb &&
-        echo [TRAVIS] GCC deb build OK &&
-        export TRAVIS_DEPLOY=1;
+    then make travis && export TRAVIS_DEPLOY=1;
     else echo [TRAVIS] Build not required;
     fi
 
