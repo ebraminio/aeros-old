@@ -71,9 +71,9 @@ endif
 
 binutils-unpatch: patches/binutils-$(BINUTILS_VERSION).patch
 ifeq ($(NO_AUTOMAKE),1)
-		patch -p0 -N -r- -R < patches/binutils-$(BINUTILS_VERSION)-automake.patch
+	patch -p0 -N -r- -R < patches/binutils-$(BINUTILS_VERSION)-automake.patch
 else
-		patch -p0 -N -r- -R < patches/binutils-$(BINUTILS_VERSION).patch
+	patch -p0 -N -r- -R < patches/binutils-$(BINUTILS_VERSION).patch
 endif
 
 binutils-install: build-binutils/Makefile
@@ -95,6 +95,13 @@ dist/$(BINUTILS_PACKAGE).deb: build-binutils/Makefile
 
 binutils-install-deb: dist/$(BINUTILS_PACKAGE).deb
 	dpkg -i $<
+
+gcc-unpatch: patches/gcc-$(GCC_VERSION).patch
+ifeq ($(NO_AUTOMAKE),1)
+	patch -p0 -N -r- -R < patches/gcc-$(GCC_VERSION)-automake.patch
+else
+	patch -p0 -N -r- -R < patches/gcc-$(GCC_VERSION).patch
+endif
 
 build-gcc/Makefile: automake_present gcc-$(GCC_VERSION)/configure $(SYSROOT)/usr/include/ patches/gcc-$(GCC_VERSION).patch
 ifeq ("$(shell which $(TARGET)-as)", "")

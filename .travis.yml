@@ -15,11 +15,14 @@ script:
         --header 'user-agent:MyClient/1.0.0' > travis-api.yml
   - export LAST_BUILT_COMMIT_ID=$(cat travis-api.yml | jq '[.builds[]|select(.state=="passed")][0].commit_id')
   - export LAST_BUILT_COMMIT_SHA=$(cat travis-api.yml | jq -r ".commits[]|select(.id==$LAST_BUILT_COMMIT_ID).sha")
+  - if [[ $LAST_BUILT_COMMIT_SHA == "" ]];
+    then make travis && export TRAVIS_DEPLOY=1;
+    fi
   - export CHANGED_FILES="$(git diff-tree --no-commit-id --name-only -r $LAST_BUILT_COMMIT_SHA HEAD)"
   - echo "[TRAVIS] Changed files since last build ($LAST_BUILT_COMMIT_SHA) :"
   - for f in $CHANGED_FILES; do echo [TRAVIS] $f; done
   - export PATH="$PATH:$HOME/local/bin"
-  - if echo "$CHANGED_FILES" | grep -q ".travis.yml\|toolchain\|lib/c";
+  - if echo "$CHANGED_FILES" | grep -q ".travis.yml\|toolchain\|lib/c\|^Makefile";
     then make travis && export TRAVIS_DEPLOY=1;
     else echo [TRAVIS] Build not required;
     fi
