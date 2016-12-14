@@ -1,5 +1,3 @@
-include config.mk
-
 .PHONY: kernel hdd qemu qemu-hdd travis uncrustify bochs
 
 SYSROOT = $(shell pwd)/sysroot
@@ -14,22 +12,26 @@ qemu-hdd: hdd.img
 	qemu-system-i386 $(QEMUFLAGS) -hda hdd.img
 
 travis:
-	echo [TRAVIS] Removing \$$HOME/local ...
-	echo [TRAVIS] Testing binutils deb build...
+	@echo [TRAVIS] Removing \$$HOME/local ...
+	@echo [TRAVIS] Testing binutils deb build...
 	rm -rf $$HOME/local/*
 	make -C toolchain binutils-deb
-	echo [TRAVIS] Binutils deb build OK
+	@echo [TRAVIS] Binutils deb build OK
+	@echo [TRAVIS] Installing binutils in local prefix...
+	rm -rfv toolchain/build-binutils/Makefile
 	#rm -rfv toolchain/build-binutils
-	#make -C toolchain binutils-unpatch
-	echo [TRAVIS] Installing binutils in local prefix...
+	make -C toolchain binutils-unpatch
 	make -C toolchain binutils-install PREFIX="$$HOME/local"
-	echo [TRAVIS] Binutils install OK
-	echo [TRAVIS] Testing GCC deb build...
+	@echo [TRAVIS] Binutils install OK
+	@echo [TRAVIS] Testing GCC deb build...
 	make -C toolchain gcc-deb
-	echo [TRAVIS] GCC deb build OK
-	echo [TRAVIS] Installing GCC in local prefix...
+	@echo [TRAVIS] GCC deb build OK
+	@echo [TRAVIS] Installing GCC in local prefix...
+	make -C toolchain/build-gcc distclean
+	rm -rfv toolchain/build-gcc/Makefile
+	make -C toolchain gcc-unpatch
 	make -C toolchain gcc-install PREFIX="$$HOME/local"
-	echo [TRAVIS] GCC install OK
+	@echo [TRAVIS] GCC install OK
 
 uncrustify: uncrustify.cfg
 	find kernel lib/c lib/stdc++ sysroot/usr/include -type f -name '*.c' -o -name '*.h' ! -name 'multiboot.h' ! -name 'multiboot2.h' ! -name 'elf.h' | $@ -c $< -F - --replace --no-backup
