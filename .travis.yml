@@ -20,20 +20,7 @@ script:
   - for f in $CHANGED_FILES; do echo [TRAVIS] $f; done
   - export PATH="$PATH:$HOME/local/bin"
   - if echo "$CHANGED_FILES" | grep -q ".travis.yml\|toolchain\|lib/c";
-    then echo [TRAVIS] Testing binutils deb build... &&
-        echo [TRAVIS] Removing \$HOME/local ... &&
-        rm -rf $HOME/local/* &&
-        make -C toolchain binutils-deb &&
-        echo [TRAVIS] Binutils deb build OK. Cleaning... &&
-        rm -rfv toolchain/build-binutils &&
-        make -C toolchain binutils-unpatch &&
-        echo [TRAVIS] Building and installing binutils in local prefix... &&
-        make -C toolchain binutils-install PREFIX="$HOME/local" &&
-        echo [TRAVIS] Binutils build OK. &&
-        echo [TRAVIS] Testing GCC deb build... &&
-        make -C toolchain gcc-deb &&
-        echo [TRAVIS] GCC deb build OK &&
-        export TRAVIS_DEPLOY=1;
+    then make travis && export TRAVIS_DEPLOY=1;
     else echo [TRAVIS] Build not required;
     fi
 

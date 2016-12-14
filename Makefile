@@ -1,6 +1,6 @@
 include config.mk
 
-.PHONY: kernel hdd qemu
+.PHONY: kernel hdd qemu qemu-hdd travis uncrustify bochs
 
 SYSROOT = $(shell pwd)/sysroot
 QEMUFLAGS = -vga std -serial mon:stdio -soundhw pcspk -net dump,file=netdump.pcap -net nic,model=e1000 -net user,hostfwd=tcp::5555-:5555 -s -S
@@ -12,6 +12,24 @@ qemu: hdd.img $(SYSROOT)/boot/aeros-i686.kernel
 
 qemu-hdd: hdd.img
 	qemu-system-i386 $(QEMUFLAGS) -hda hdd.img
+
+travis:
+	echo [TRAVIS] Removing \$$HOME/local ...
+	echo [TRAVIS] Testing binutils deb build...
+	rm -rf $$HOME/local/*
+	make -C toolchain binutils-deb
+	echo [TRAVIS] Binutils deb build OK
+	#rm -rfv toolchain/build-binutils
+	#make -C toolchain binutils-unpatch
+	echo [TRAVIS] Installing binutils in local prefix...
+	make -C toolchain binutils-install PREFIX="$$HOME/local"
+	echo [TRAVIS] Binutils install OK
+	echo [TRAVIS] Testing GCC deb build...
+	make -C toolchain gcc-deb
+	echo [TRAVIS] GCC deb build OK
+	echo [TRAVIS] Installing GCC in local prefix...
+	make -C toolchain gcc-install PREFIX="$$HOME/local"
+	echo [TRAVIS] GCC install OK
 
 uncrustify: uncrustify.cfg
 	find kernel lib/c lib/stdc++ sysroot/usr/include -type f -name '*.c' -o -name '*.h' ! -name 'multiboot.h' ! -name 'multiboot2.h' ! -name 'elf.h' | $@ -c $< -F - --replace --no-backup
