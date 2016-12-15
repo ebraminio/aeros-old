@@ -1,5 +1,3 @@
-$(shell grep "TARGET =\|PHONY" config.mk)
-
 .PHONY: kernel hdd qemu qemu-hdd travis uncrustify bochs
 
 SYSROOT = $(shell pwd)/sysroot

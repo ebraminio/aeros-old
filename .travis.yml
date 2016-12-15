@@ -23,9 +23,10 @@ script:
   - echo "[TRAVIS] Changed files since last build ($LAST_BUILT_COMMIT_SHA) :"
   - for f in $CHANGED_FILES; do echo [TRAVIS] $f; done
   - export PATH="$PATH:$HOME/local/bin"
-  - if echo "$CHANGED_FILES" | grep -q ".travis.yml\|toolchain\|lib/c\|^Makefile";
-    then make travis && export TRAVIS_DEPLOY=1;
-    else echo [TRAVIS] Build not required;
+  - if git diff-tree --no-commit-id --name-only -r $LAST_BUILT_COMMIT_SHA HEAD > /dev/null
+        || echo "$CHANGED_FILES" | grep -q ".travis.yml\|toolchain\|lib/c\|^Makefile";
+      then make travis && export TRAVIS_DEPLOY=1;
+      else echo [TRAVIS] Build not required;
     fi
 
 after_failure:
