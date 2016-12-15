@@ -1,3 +1,5 @@
+$(shell grep "TARGET =\|PHONY" config.mk)
+
 .PHONY: kernel hdd qemu qemu-hdd travis uncrustify bochs
 
 SYSROOT = $(shell pwd)/sysroot
@@ -19,7 +21,6 @@ travis:
 	@echo [TRAVIS] Binutils deb build OK
 	@echo [TRAVIS] Installing binutils in \$$HOME/local prefix...
 	rm -rfv toolchain/build-binutils/Makefile
-	#rm -rfv toolchain/build-binutils
 	make -C toolchain binutils-unpatch
 	make -C toolchain binutils-install PREFIX="$$HOME/local"
 	@echo [TRAVIS] Binutils install OK

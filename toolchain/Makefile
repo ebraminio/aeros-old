@@ -1,4 +1,4 @@
-TARGET = $(shell grep ^TARGET ../config.mk|cut -d' ' -f3)
+$(shell grep "^TARGET =" ../config.mk)
 
 SYSROOT = $(abspath ../sysroot)
 PREFIX = /usr

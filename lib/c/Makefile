@@ -9,7 +9,7 @@ libk.a: $(filter-out ./unistd/syscalls.o, $(OBJECTS))
 	$(AR) rcs $@ $?
 
 install:: libk.a crt0.o crti.o crtn.o
-	@cp -uv $? $(SYSROOT)/usr/lib/
+	@cp -uv $^ $(SYSROOT)/usr/lib/
 
 clean::
 	@rm -fv libk.a

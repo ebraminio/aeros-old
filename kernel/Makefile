@@ -6,7 +6,7 @@ OBJECTS = $(C_FILES:.c=.o) $(S_FILES:.S=.o)
 
 -include ../config.mk
 
-CFLAGS += -I$(PWD)/include -ffreestanding -fbuiltin
+CFLAGS += -ffreestanding -fbuiltin
 LDFLAGS += -g
 LDLIBS += -nostdlib -lk -lgcc
 

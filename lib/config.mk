@@ -9,7 +9,7 @@ OBJECTS ?= $(C_FILES:.c=.o) $(CC_FILES:.cc=.o) $(S_FILES:.S=.o)
 
 LIBNAME ?= $(lastword $(subst /, , $(CURDIR)))
 
-CPPFLAGS += -I$(PWD)/include -ffreestanding -fbuiltin
+CPPFLAGS += -iquote $(PWD)/include -ffreestanding -fbuiltin
 
 all:: lib$(LIBNAME).a
 

@@ -15,8 +15,9 @@ script:
         --header 'user-agent:MyClient/1.0.0' > travis-api.yml
   - export LAST_BUILT_COMMIT_ID=$(cat travis-api.yml | jq '[.builds[]|select(.state=="passed")][0].commit_id')
   - export LAST_BUILT_COMMIT_SHA=$(cat travis-api.yml | jq -r ".commits[]|select(.id==$LAST_BUILT_COMMIT_ID).sha")
-  - if [[ $LAST_BUILT_COMMIT_SHA == "" ]];
+  - if [[ "$LAST_BUILT_COMMIT_SHA" == "" ]];
     then make travis && export TRAVIS_DEPLOY=1;
+    else echo $LAST_BUILT_COMMIT_SHA;
     fi
   - export CHANGED_FILES="$(git diff-tree --no-commit-id --name-only -r $LAST_BUILT_COMMIT_SHA HEAD)"
   - echo "[TRAVIS] Changed files since last build ($LAST_BUILT_COMMIT_SHA) :"
